@@ -3525,9 +3525,16 @@ function setupLobbyListeners(roomId) {
       }
       
       // Start the app when Firebase is ready
-setTimeout(() => {
-    init();
-}, 1000);
-  </script>
-</body>
-</html>
+window.addEventListener('DOMContentLoaded', () => {
+    console.log('[APP] Initializing TCC Experience...');
+    createParticles();
+    setupEventListeners();
+    
+    if (loadUser()) {
+        document.getElementById('user-name-display').textContent = state.currentUser.name;
+        showScreen('home-screen');
+        loadGlobalRanking();
+    } else {
+        showScreen('login-screen');
+    }
+});
