@@ -3525,8 +3525,9 @@ function setupLobbyListeners(roomId) {
       }
       
       // Start the app when Firebase is ready
-      init();
-    }, 1000);
+setTimeout(() => {
+    init();
+}, 1000);
   </script>
 </body>
 </html>
