@@ -1,0 +1,3471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>TCC Experience - Jogo Educativo Multiplayer</title>
+  
+  <!-- Google Fonts -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Firebase SDK v10.12.0 -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js';
+    import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot, query, where, orderBy, limit, serverTimestamp, addDoc, getDocs, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+    
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDsEiNt9cJQP18eT_xBTRuI6_QeMqzbALc",
+      authDomain: "tcc-experiencie.firebaseapp.com",
+      projectId: "tcc-experiencie",
+      storageBucket: "tcc-experiencie.firebasestorage.app",
+      messagingSenderId: "368040879283",
+      appId: "1:368040879283:web:cc8079fc5d4c8fcdf1fcc6",
+      measurementId: "G-QY4YB4591T"
+    };
+    
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
+    
+    // Expose Firebase to global scope for module access
+    window.firebase = { app, analytics, db, getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot, query, where, orderBy, limit, serverTimestamp, addDoc, getDocs, deleteDoc, logEvent };
+  </script>
+  
+  <style>
+    /* ===== VARIÁVEIS CSS ===== */
+    :root {
+      /* Cores Neon */
+      --neon-blue: #00d4ff;
+      --neon-green: #00ff88;
+      --neon-purple: #b44aff;
+      --neon-pink: #ff2d75;
+      --neon-yellow: #ffe44d;
+      --neon-red: #ff3355;
+      --neon-orange: #ff8844;
+      
+      /* Cores Base */
+      --bg-dark: #0a0a0f;
+      --bg-card: rgba(20, 20, 35, 0.85);
+      --bg-card-hover: rgba(30, 30, 50, 0.95);
+      --text-primary: #ffffff;
+      --text-secondary: #b0b0c5;
+      --text-muted: #707090;
+      
+      /* Categorias */
+      --cat-red: #ff4d6a;
+      --cat-blue: #4da6ff;
+      --cat-yellow: #ffd93d;
+      --cat-green: #6bff96;
+      
+      /* Fontes */
+      --font-title: 'Orbitron', monospace;
+      --font-body: 'Rajdhani', sans-serif;
+      
+      /* Tamanhos */
+      --border-radius: 14px;
+      --border-radius-sm: 10px;
+      --border-radius-lg: 20px;
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 1rem;
+      --spacing-md: 1.5rem;
+      --spacing-lg: 2rem;
+      --spacing-xl: 3rem;
+      
+      /* Transições */
+      --transition-fast: 0.2s ease;
+      --transition-normal: 0.3s ease;
+      --transition-slow: 0.5s ease;
+      
+      /* Sombras e Efeitos */
+      --shadow-neon: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+      --shadow-neon-green: 0 0 10px var(--neon-green), 0 0 20px var(--neon-green);
+      --shadow-neon-purple: 0 0 10px var(--neon-purple), 0 0 20px var(--neon-purple);
+      --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.4);
+      --glow-pulse: 0 0 15px var(--neon-blue), 0 0 30px var(--neon-blue);
+    }
+    
+    /* ===== RESET E BASE ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+    }
+    
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      line-height: 1.5;
+      overflow-x: hidden;
+      min-height: 100vh;
+      position: relative;
+    }
+    
+    /* Background Effects */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 10% 20%, rgba(180, 74, 255, 0.1) 0%, transparent 25%),
+        radial-gradient(circle at 90% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 25%),
+        radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.05) 0%, transparent 35%);
+      z-index: -3;
+      pointer-events: none;
+    }
+    
+    /* Grid animado no background */
+    .bg-grid {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      z-index: -2;
+      pointer-events: none;
+      animation: gridMove 20s linear infinite;
+    }
+    
+    @keyframes gridMove {
+      0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+      100% { transform: perspective(500px) rotateX(60deg) translateY(40px); }
+    }
+    
+    /* Orbs flutuantes */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(40px);
+      opacity: 0.3;
+      z-index: -1;
+      animation: float 15s infinite ease-in-out;
+      pointer-events: none;
+    }
+    
+    .orb-1 {
+      width: 300px;
+      height: 300px;
+      background: var(--neon-purple);
+      top: 10%;
+      left: 10%;
+      animation-delay: 0s;
+    }
+    
+    .orb-2 {
+      width: 250px;
+      height: 250px;
+      background: var(--neon-green);
+      bottom: 15%;
+      right: 10%;
+      animation-delay: -5s;
+    }
+    
+    .orb-3 {
+      width: 200px;
+      height: 200px;
+      background: var(--neon-blue);
+      top: 60%;
+      left: 20%;
+      animation-delay: -10s;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(20px, -20px) scale(1.05); }
+      50% { transform: translate(-15px, 15px) scale(0.95); }
+      75% { transform: translate(10px, 25px) scale(1.02); }
+    }
+    
+    /* Scanlines effect */
+    .scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 1px,
+        rgba(0, 0, 0, 0.1) 1px,
+        rgba(0, 0, 0, 0.1) 2px
+      );
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.3;
+    }
+    
+    /* Partículas subindo */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+    }
+    
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--neon-blue);
+      border-radius: 50%;
+      opacity: 0.6;
+      animation: particleUp 8s infinite linear;
+      box-shadow: 0 0 10px var(--neon-blue);
+    }
+    
+    @keyframes particleUp {
+      0% {
+        transform: translateY(100vh) translateX(0) scale(0.5);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.8;
+      }
+      90% {
+        opacity: 0.8;
+      }
+      100% {
+        transform: translateY(-100px) translateX(50px) scale(1);
+        opacity: 0;
+      }
+    }
+    
+    /* ===== UTILITÁRIOS ===== */
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: var(--spacing-sm);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 10;
+    }
+    
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--spacing-md) var(--spacing-sm);
+      animation: fadeIn 0.4s ease-out;
+      width: 100%;
+    }
+    
+    .screen.active {
+      display: flex;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes pop {
+      0% { transform: scale(0.95); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.4); }
+      70% { box-shadow: 0 0 0 12px rgba(0, 255, 136, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+    }
+    
+    @keyframes pulseRed {
+      0% { box-shadow: 0 0 0 0 rgba(255, 51, 85, 0.4); }
+      70% { box-shadow: 0 0 0 12px rgba(255, 51, 85, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(255, 51, 85, 0); }
+    }
+    
+    @keyframes glowPulse {
+      0% { text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue); }
+      50% { text-shadow: 0 0 15px var(--neon-blue), 0 0 30px var(--neon-blue), 0 0 40px var(--neon-blue); }
+      100% { text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue); }
+    }
+    
+    @keyframes timerWarning {
+      0%, 100% { color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red); }
+      50% { color: #ff6677; text-shadow: 0 0 15px var(--neon-red), 0 0 25px var(--neon-red); }
+    }
+    
+    @keyframes confettiFall {
+      0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+    
+    /* ===== COMPONENTES ===== */
+    /* Logo */
+    .logo-container {
+      margin: var(--spacing-md) 0;
+      text-align: center;
+      animation: glowPulse 3s infinite;
+    }
+    
+    .logo-svg {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto var(--spacing-sm);
+      filter: drop-shadow(0 0 10px var(--neon-blue));
+    }
+    
+    .logo-title {
+      font-family: var(--font-title);
+      font-size: 2.2rem;
+      font-weight: 900;
+      background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple), var(--neon-green));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 15px rgba(180, 74, 255, 0.5);
+      letter-spacing: 1px;
+      margin-bottom: var(--spacing-xs);
+    }
+    
+    .logo-subtitle {
+      font-family: var(--font-body);
+      font-size: 1.1rem;
+      color: var(--neon-yellow);
+      font-weight: 600;
+      text-shadow: 0 0 8px rgba(255, 228, 77, 0.6);
+    }
+    
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--border-radius);
+      padding: var(--spacing-md);
+      margin: var(--spacing-sm) 0;
+      width: 100%;
+      border: 1px solid rgba(100, 100, 150, 0.3);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-card);
+      transition: var(--transition-normal);
+    }
+    
+    .card:hover {
+      border-color: var(--neon-blue);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(0, 212, 255, 0.25);
+    }
+    
+    .card-title {
+      font-family: var(--font-title);
+      font-size: 1.3rem;
+      margin-bottom: var(--spacing-sm);
+      color: var(--neon-blue);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    /* Botões */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 24px;
+      border: none;
+      border-radius: 50px;
+      font-family: var(--font-title);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition-normal);
+      width: 100%;
+      margin: var(--spacing-xs) 0;
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s;
+    }
+    
+    .btn:hover::before {
+      left: 100%;
+    }
+    
+    .btn:active {
+      transform: scale(0.98);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--neon-green), #00cc6a);
+      color: #0a0a0f;
+      box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+    }
+    
+    .btn-primary:hover {
+      box-shadow: 0 0 25px rgba(0, 255, 136, 0.8), 0 0 40px rgba(0, 255, 136, 0.4);
+      transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+      color: white;
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+    }
+    
+    .btn-secondary:hover {
+      box-shadow: 0 0 25px rgba(0, 212, 255, 0.8), 0 0 40px rgba(180, 74, 255, 0.4);
+      transform: translateY(-2px);
+    }
+    
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--neon-blue);
+      color: var(--neon-blue);
+    }
+    
+    .btn-outline:hover {
+      background: rgba(0, 212, 255, 0.1);
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, var(--neon-red), #cc2944);
+      color: white;
+      box-shadow: 0 0 15px rgba(255, 51, 85, 0.5);
+    }
+    
+    .btn-danger:hover {
+      box-shadow: 0 0 25px rgba(255, 51, 85, 0.8);
+      transform: translateY(-2px);
+    }
+    
+    .btn-warning {
+      background: linear-gradient(135deg, var(--neon-yellow), #e6c200);
+      color: #0a0a0f;
+      box-shadow: 0 0 15px rgba(255, 228, 77, 0.5);
+    }
+    
+    .btn-warning:hover {
+      box-shadow: 0 0 25px rgba(255, 228, 77, 0.8);
+      transform: translateY(-2px);
+    }
+    
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    
+    .btn:disabled:hover::before {
+      display: none;
+    }
+    
+    /* Inputs */
+    .input-group {
+      width: 100%;
+      margin: var(--spacing-sm) 0;
+    }
+    
+    .input-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+    
+    .input-field {
+      width: 100%;
+      padding: 14px 18px;
+      border-radius: var(--border-radius-sm);
+      border: 2px solid rgba(100, 100, 150, 0.4);
+      background: rgba(30, 30, 50, 0.7);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 1.1rem;
+      transition: var(--transition-fast);
+    }
+    
+    .input-field:focus {
+      outline: none;
+      border-color: var(--neon-blue);
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.3);
+    }
+    
+    .input-field::placeholder {
+      color: var(--text-muted);
+    }
+    
+    /* Legendas de cores */
+    .color-legend {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: var(--spacing-md) 0;
+      width: 100%;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      padding: 8px 12px;
+      background: rgba(30, 30, 50, 0.6);
+      border-radius: 8px;
+    }
+    
+    .legend-dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    
+    .legend-red { background: var(--cat-red); box-shadow: 0 0 8px var(--cat-red); }
+    .legend-blue { background: var(--cat-blue); box-shadow: 0 0 8px var(--cat-blue); }
+    .legend-yellow { background: var(--cat-yellow); box-shadow: 0 0 8px var(--cat-yellow); }
+    .legend-green { background: var(--cat-green); box-shadow: 0 0 8px var(--cat-green); }
+    
+    /* Como jogar cards */
+    .how-to-play {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin: var(--spacing-md) 0;
+      width: 100%;
+    }
+    
+    .step-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(30, 30, 50, 0.6);
+      border-radius: var(--border-radius-sm);
+      border-left: 3px solid var(--neon-blue);
+    }
+    
+    .step-number {
+      background: var(--neon-blue);
+      color: #0a0a0f;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-family: var(--font-title);
+      flex-shrink: 0;
+      font-size: 0.9rem;
+    }
+    
+    /* Ranking */
+    .ranking-list {
+      width: 100%;
+      margin: var(--spacing-md) 0;
+    }
+    
+    .ranking-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      margin: 8px 0;
+      background: rgba(30, 30, 50, 0.7);
+      border-radius: var(--border-radius-sm);
+      border-left: 4px solid var(--neon-purple);
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    .ranking-item:nth-child(1) { border-left-color: var(--neon-yellow); background: rgba(255, 228, 77, 0.15); }
+    .ranking-item:nth-child(2) { border-left-color: #c0c0c0; }
+    .ranking-item:nth-child(3) { border-left-color: #cd7f32; }
+    
+    .ranking-position {
+      font-family: var(--font-title);
+      font-size: 1.4rem;
+      font-weight: 700;
+      min-width: 40px;
+      text-align: center;
+    }
+    
+    .ranking-gold { color: var(--neon-yellow); text-shadow: 0 0 10px var(--neon-yellow); }
+    .ranking-silver { color: #c0c0c0; text-shadow: 0 0 8px rgba(192,192,192,0.7); }
+    .ranking-bronze { color: #cd7f32; text-shadow: 0 0 8px rgba(205,127,50,0.7); }
+    
+    .ranking-info {
+      flex: 1;
+      padding: 0 12px;
+    }
+    
+    .ranking-name {
+      font-weight: 600;
+      font-size: 1.05rem;
+      margin-bottom: 2px;
+    }
+    
+    .ranking-wins {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    
+    .ranking-title {
+      font-size: 0.8rem;
+      background: rgba(180, 74, 255, 0.2);
+      padding: 2px 8px;
+      border-radius: 12px;
+      margin-left: 8px;
+      color: var(--neon-purple);
+    }
+    
+    .ranking-score {
+      font-family: var(--font-title);
+      font-weight: 700;
+      color: var(--neon-green);
+      font-size: 1.1rem;
+    }
+    
+    /* ===== TELAS ESPECÍFICAS ===== */
+    /* Login Screen */
+    #login-screen .welcome-text {
+      text-align: center;
+      margin: var(--spacing-lg) 0;
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    
+    /* Home Screen */
+    .welcome-message {
+      font-size: 1.3rem;
+      margin: var(--spacing-md) 0;
+      text-align: center;
+      color: var(--neon-green);
+      font-weight: 600;
+      animation: slideDown 0.4s ease-out;
+    }
+    
+    .action-buttons {
+      width: 100%;
+      margin: var(--spacing-lg) 0;
+    }
+    
+    .about-list {
+      list-style: none;
+      margin: var(--spacing-sm) 0;
+      padding-left: 8px;
+    }
+    
+    .about-list li {
+      padding: 6px 0;
+      padding-left: 20px;
+      position: relative;
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+    }
+    
+    .about-list li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--neon-green);
+      font-weight: bold;
+    }
+    
+    /* Lobby Screen */
+    .room-code {
+      font-family: var(--font-title);
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: var(--neon-yellow);
+      text-shadow: 0 0 15px var(--neon-yellow);
+      margin: var(--spacing-md) 0;
+      letter-spacing: 8px;
+      text-align: center;
+      animation: glowPulse 2s infinite;
+    }
+    
+    .players-list {
+      width: 100%;
+      margin: var(--spacing-md) 0;
+      max-height: 250px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+    
+    .players-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .players-list::-webkit-scrollbar-track {
+      background: rgba(30, 30, 50, 0.5);
+      border-radius: 3px;
+    }
+    
+    .players-list::-webkit-scrollbar-thumb {
+      background: var(--neon-blue);
+      border-radius: 3px;
+    }
+    
+    .player-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      margin: 6px 0;
+      background: rgba(30, 30, 50, 0.7);
+      border-radius: var(--border-radius-sm);
+      border-left: 3px solid var(--neon-green);
+    }
+    
+    .player-item.host {
+      border-left-color: var(--neon-yellow);
+      background: rgba(255, 228, 77, 0.1);
+    }
+    
+    .player-name {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .player-status {
+      font-size: 0.85rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(100, 100, 150, 0.3);
+    }
+    
+    .status-waiting { color: var(--neon-yellow); }
+    .status-playing { color: var(--neon-blue); }
+    .status-finished { color: var(--neon-green); }
+    
+    .player-count {
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: var(--spacing-sm) 0;
+      color: var(--text-secondary);
+    }
+    
+    /* Game Screen */
+    .game-hud {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 10px;
+      width: 100%;
+      padding: 12px;
+      background: rgba(20, 20, 35, 0.9);
+      border-radius: var(--border-radius);
+      margin-bottom: var(--spacing-md);
+      border: 1px solid rgba(100, 100, 150, 0.3);
+    }
+    
+    .hud-player {
+      text-align: left;
+    }
+    
+    .hud-player-name {
+      font-weight: 600;
+      color: var(--neon-blue);
+      font-size: 1.1rem;
+    }
+    
+    .hud-score {
+      font-family: var(--font-title);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--neon-green);
+      margin-top: 4px;
+    }
+    
+    .hud-center {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .combo-indicator {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: var(--font-title);
+      font-weight: 700;
+      font-size: 1.3rem;
+      color: var(--neon-orange);
+      margin-bottom: 4px;
+    }
+    
+    .combo-high {
+      color: var(--neon-yellow);
+      text-shadow: 0 0 10px var(--neon-yellow);
+      animation: pop 0.3s ease-out;
+    }
+    
+    .xp-bar-container {
+      width: 100%;
+      height: 8px;
+      background: rgba(100, 100, 150, 0.3);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    
+    .xp-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+      border-radius: 4px;
+      transition: width 0.3s ease;
+      box-shadow: 0 0 10px var(--neon-blue);
+    }
+    
+    .hud-level {
+      text-align: right;
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    
+    .hud-level-name {
+      font-weight: 600;
+      color: var(--neon-purple);
+      display: block;
+    }
+    
+    /* Turn Indicator */
+    .turn-indicator {
+      width: 100%;
+      padding: 16px;
+      text-align: center;
+      margin: var(--spacing-sm) 0;
+      border-radius: var(--border-radius);
+      font-weight: 700;
+      font-size: 1.3rem;
+      animation: pulse 2s infinite;
+      border: 2px solid transparent;
+      background: linear-gradient(45deg, rgba(0,255,136,0.2), rgba(0,212,255,0.2)) border-box;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+    }
+    
+    .turn-indicator.your-turn {
+      color: var(--neon-green);
+      text-shadow: 0 0 10px var(--neon-green);
+      animation: glowPulse 1.5s infinite;
+    }
+    
+    .turn-indicator.other-turn {
+      color: var(--neon-yellow);
+      text-shadow: 0 0 8px var(--neon-yellow);
+      animation: none;
+    }
+    
+    /* Level Progress */
+    .level-section {
+      width: 100%;
+      margin: var(--spacing-sm) 0;
+      padding: 12px;
+      background: rgba(30, 30, 50, 0.7);
+      border-radius: var(--border-radius-sm);
+    }
+    
+    .level-title {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+    
+    .level-name {
+      font-weight: 600;
+      color: var(--neon-purple);
+    }
+    
+    .level-xp {
+      color: var(--text-secondary);
+    }
+    
+    .level-bar-container {
+      width: 100%;
+      height: 10px;
+      background: rgba(100, 100, 150, 0.3);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    
+    .level-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--neon-purple), var(--neon-blue));
+      border-radius: 5px;
+      transition: width 0.4s ease;
+      position: relative;
+    }
+    
+    .level-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      animation: shine 2s infinite;
+    }
+    
+    @keyframes shine {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    
+    /* Tabs Navigation */
+    .tabs {
+      display: flex;
+      width: 100%;
+      margin: var(--spacing-md) 0;
+      background: rgba(20, 20, 35, 0.9);
+      border-radius: 50px;
+      padding: 4px;
+      border: 1px solid rgba(100, 100, 150, 0.3);
+    }
+    
+    .tab-btn {
+      flex: 1;
+      padding: 10px 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-weight: 600;
+      border-radius: 45px;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+      color: white;
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+    }
+    
+    .tab-content {
+      width: 100%;
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    /* Category Buttons Grid */
+    .category-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: var(--spacing-md) 0;
+      width: 100%;
+    }
+    
+    .category-btn {
+      padding: 16px 12px;
+      border: none;
+      border-radius: var(--border-radius);
+      background: rgba(30, 30, 50, 0.8);
+      color: white;
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: var(--transition-normal);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      border: 2px solid transparent;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .category-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: currentColor;
+      opacity: 0.1;
+      z-index: -1;
+    }
+    
+    .category-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .category-btn:active {
+      transform: translateY(1px);
+    }
+    
+    .category-btn.red { 
+      border-color: var(--cat-red); 
+      color: var(--cat-red);
+    }
+    .category-btn.blue { 
+      border-color: var(--cat-blue); 
+      color: var(--cat-blue);
+    }
+    .category-btn.yellow { 
+      border-color: var(--cat-yellow); 
+      color: var(--cat-yellow);
+    }
+    .category-btn.green { 
+      border-color: var(--cat-green); 
+      color: var(--cat-green);
+    }
+    
+    .category-icon {
+      font-size: 1.8rem;
+    }
+    
+    /* Special Houses Section */
+    .special-houses {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: var(--spacing-md) 0;
+      width: 100%;
+    }
+    
+    .special-btn {
+      padding: 12px 8px;
+      border: none;
+      border-radius: var(--border-radius-sm);
+      background: rgba(30, 30, 50, 0.8);
+      color: white;
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: var(--transition-normal);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      border: 2px solid transparent;
+      text-align: center;
+    }
+    
+    .special-btn:hover {
+      transform: translateY(-2px);
+    }
+    
+    .special-btn.insight { 
+      border-color: var(--neon-yellow); 
+      color: var(--neon-yellow);
+      background: rgba(255, 228, 77, 0.1);
+    }
+    .special-btn.impulse { 
+      border-color: var(--neon-red); 
+      color: var(--neon-red);
+      background: rgba(255, 51, 85, 0.1);
+    }
+    .special-btn.reevaluation { 
+      border-color: var(--neon-blue); 
+      color: var(--neon-blue);
+      background: rgba(0, 212, 255, 0.1);
+    }
+    
+    .special-icon {
+      font-size: 1.4rem;
+    }
+    
+    /* Question Card */
+    .question-card {
+      background: var(--bg-card);
+      border-radius: var(--border-radius);
+      padding: var(--spacing-md);
+      margin: var(--spacing-md) 0;
+      width: 100%;
+      border: 1px solid rgba(100, 100, 150, 0.3);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-card);
+    }
+    
+    .question-category {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    
+    .question-category.red { background: rgba(255, 77, 106, 0.2); color: var(--cat-red); }
+    .question-category.blue { background: rgba(77, 166, 255, 0.2); color: var(--cat-blue); }
+    .question-category.yellow { background: rgba(255, 217, 61, 0.2); color: var(--cat-yellow); }
+    .question-category.green { background: rgba(107, 255, 150, 0.2); color: var(--cat-green); }
+    
+    .question-number {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    
+    .question-text {
+      font-size: 1.2rem;
+      line-height: 1.5;
+      margin-bottom: var(--spacing-md);
+      font-weight: 500;
+    }
+    
+    .options-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .option-btn {
+      padding: 16px;
+      border: 2px solid rgba(100, 100, 150, 0.4);
+      border-radius: var(--border-radius-sm);
+      background: rgba(30, 30, 50, 0.7);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 1.05rem;
+      text-align: left;
+      cursor: pointer;
+      transition: var(--transition-normal);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .option-btn:hover {
+      border-color: var(--neon-blue);
+      background: rgba(40, 40, 70, 0.9);
+      transform: translateX(4px);
+    }
+    
+    .option-btn.correct {
+      border-color: var(--neon-green);
+      background: rgba(0, 255, 136, 0.15);
+      animation: pulse 0.5s ease-out;
+    }
+    
+    .option-btn.incorrect {
+      border-color: var(--neon-red);
+      background: rgba(255, 51, 85, 0.15);
+      animation: shake 0.3s ease-out;
+    }
+    
+    .option-letter {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(100, 100, 150, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-family: var(--font-title);
+      flex-shrink: 0;
+    }
+    
+    .option-btn.correct .option-letter {
+      background: var(--neon-green);
+      color: #0a0a0f;
+    }
+    
+    .option-btn.incorrect .option-letter {
+      background: var(--neon-red);
+      color: white;
+    }
+    
+    .feedback-message {
+      padding: 12px;
+      border-radius: var(--border-radius-sm);
+      margin: var(--spacing-sm) 0;
+      font-size: 0.95rem;
+      display: none;
+    }
+    
+    .feedback-message.show {
+      display: block;
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    .feedback-correct {
+      background: rgba(0, 255, 136, 0.15);
+      border-left: 4px solid var(--neon-green);
+      color: var(--neon-green);
+    }
+    
+    .feedback-incorrect {
+      background: rgba(255, 51, 85, 0.15);
+      border-left: 4px solid var(--neon-red);
+      color: var(--neon-red);
+    }
+    
+    /* Room Ranking Tab */
+    .room-ranking {
+      width: 100%;
+      margin: var(--spacing-md) 0;
+    }
+    
+    .room-ranking-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      margin: 8px 0;
+      background: rgba(30, 30, 50, 0.7);
+      border-radius: var(--border-radius-sm);
+      border-left: 4px solid var(--neon-blue);
+    }
+    
+    .room-ranking-item.you {
+      border-left-color: var(--neon-green);
+      background: rgba(0, 255, 136, 0.1);
+      box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+    }
+    
+    .room-position {
+      font-family: var(--font-title);
+      font-weight: 700;
+      font-size: 1.2rem;
+      min-width: 36px;
+      text-align: center;
+    }
+    
+    .room-player-info {
+      flex: 1;
+      padding: 0 12px;
+    }
+    
+    .room-player-name {
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+    
+    .room-player-you {
+      display: inline-block;
+      background: var(--neon-green);
+      color: #0a0a0f;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      margin-left: 8px;
+      font-weight: 600;
+    }
+    
+    .room-player-score {
+      font-family: var(--font-title);
+      font-weight: 700;
+      color: var(--neon-green);
+      font-size: 1.1rem;
+    }
+    
+    /* History Tab */
+    .history-list {
+      width: 100%;
+      max-height: 300px;
+      overflow-y: auto;
+      margin: var(--spacing-md) 0;
+      padding-right: 5px;
+    }
+    
+    .history-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .history-list::-webkit-scrollbar-track {
+      background: rgba(30, 30, 50, 0.5);
+      border-radius: 3px;
+    }
+    
+    .history-list::-webkit-scrollbar-thumb {
+      background: var(--neon-blue);
+      border-radius: 3px;
+    }
+    
+    .history-item {
+      padding: 12px 16px;
+      margin: 6px 0;
+      background: rgba(30, 30, 50, 0.7);
+      border-radius: var(--border-radius-sm);
+      border-left: 3px solid var(--neon-blue);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    
+    .history-item.correct {
+      border-left-color: var(--neon-green);
+    }
+    
+    .history-item.incorrect {
+      border-left-color: var(--neon-red);
+    }
+    
+    .history-icon {
+      font-size: 1.3rem;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+    
+    .history-correct { color: var(--neon-green); }
+    .history-incorrect { color: var(--neon-red); }
+    
+    .history-content {
+      flex: 1;
+    }
+    
+    .history-question {
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+    
+    .history-points {
+      font-family: var(--font-title);
+      font-weight: 700;
+      color: var(--neon-green);
+      font-size: 0.95rem;
+    }
+    
+    /* Footer Buttons */
+    .footer-buttons {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: var(--spacing-sm);
+      display: flex;
+      gap: 10px;
+      z-index: 100;
+      background: linear-gradient(to top, var(--bg-dark), transparent);
+    }
+    
+    .footer-btn {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 50px;
+      font-family: var(--font-title);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: var(--transition-normal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    
+    .footer-btn.finish {
+      background: linear-gradient(135deg, var(--neon-yellow), #e6c200);
+      color: #0a0a0f;
+    }
+    
+    .footer-btn.exit {
+      background: linear-gradient(135deg, var(--neon-red), #cc2944);
+      color: white;
+    }
+    
+    /* Final Screen */
+    .final-title {
+      font-family: var(--font-title);
+      font-size: 2rem;
+      font-weight: 900;
+      text-align: center;
+      margin: var(--spacing-lg) 0 var(--spacing-md);
+      background: linear-gradient(90deg, var(--neon-yellow), var(--neon-green), var(--neon-blue));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 0 15px rgba(255, 228, 77, 0.5);
+    }
+    
+    .winner-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--neon-yellow), var(--neon-orange));
+      color: #0a0a0f;
+      padding: 8px 24px;
+      border-radius: 50px;
+      font-family: var(--font-title);
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin: var(--spacing-md) 0;
+      animation: pop 0.4s ease-out, pulse 2s infinite;
+      box-shadow: 0 0 20px rgba(255, 228, 77, 0.7);
+    }
+    
+    .final-ranking {
+      width: 100%;
+      margin: var(--spacing-md) 0;
+    }
+    
+    .final-ranking-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      margin: 8px 0;
+      background: rgba(30, 30, 50, 0.7);
+      border-radius: var(--border-radius-sm);
+      border-left: 4px solid var(--neon-blue);
+    }
+    
+    .final-ranking-item.winner {
+      border-left-color: var(--neon-yellow);
+      background: rgba(255, 228, 77, 0.15);
+      box-shadow: 0 0 15px rgba(255, 228, 77, 0.3);
+    }
+    
+    .final-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: var(--spacing-lg) 0;
+      width: 100%;
+    }
+    
+    .stat-card {
+      background: rgba(30, 30, 50, 0.7);
+      border-radius: var(--border-radius-sm);
+      padding: 16px;
+      text-align: center;
+      border: 1px solid rgba(100, 100, 150, 0.3);
+    }
+    
+    .stat-value {
+      font-family: var(--font-title);
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--neon-green);
+      margin: 4px 0;
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    
+    .final-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      margin-top: var(--spacing-lg);
+    }
+    
+    /* Confetti */
+    .confetti {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      background: var(--neon-yellow);
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 2000;
+      animation: confettiFall 3s forwards;
+    }
+    
+    /* Notifications */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      max-width: 300px;
+      padding: 16px;
+      background: var(--bg-card);
+      border-radius: var(--border-radius);
+      border-left: 4px solid var(--neon-blue);
+      box-shadow: var(--shadow-card), 0 0 20px rgba(0, 212, 255, 0.3);
+      z-index: 3000;
+      transform: translateX(400px);
+      transition: transform 0.3s ease-out;
+      animation: slideIn 0.3s ease-out forwards;
+    }
+    
+    @keyframes slideIn {
+      to { transform: translateX(0); }
+    }
+    
+    .notification-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .notification-icon {
+      font-size: 1.5rem;
+      color: var(--neon-blue);
+    }
+    
+    .notification-text {
+      flex: 1;
+      font-size: 0.95rem;
+    }
+    
+    .notification-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 50%;
+      transition: var(--transition-fast);
+    }
+    
+    .notification-close:hover {
+      color: var(--text-primary);
+      background: rgba(100, 100, 150, 0.2);
+    }
+    
+    /* Timer Warning */
+    .timer-warning {
+      animation: timerWarning 1s infinite;
+    }
+    
+    /* Footer */
+    .app-footer {
+      text-align: center;
+      padding: var(--spacing-md) var(--spacing-sm) var(--spacing-lg);
+      margin-top: auto;
+      width: 100%;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    
+    .footer-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-secondary);
+    }
+    
+    .footer-credits {
+      font-family: var(--font-title);
+      color: var(--neon-blue);
+      font-size: 0.95rem;
+      text-shadow: 0 0 8px rgba(0, 212, 255, 0.5);
+    }
+    
+    /* Responsive */
+    @media (min-width: 501px) {
+      .container {
+        max-width: 520px;
+        padding: var(--spacing-md);
+      }
+    }
+    
+    @media (max-width: 375px) {
+      :root {
+        --spacing-xs: 0.4rem;
+        --spacing-sm: 0.8rem;
+        --spacing-md: 1.2rem;
+        --spacing-lg: 2rem;
+        --spacing-xl: 2.5rem;
+      }
+      
+      .logo-title {
+        font-size: 1.9rem;
+      }
+      
+      .room-code {
+        font-size: 2.2rem;
+        letter-spacing: 6px;
+      }
+      
+      .category-grid,
+      .special-houses {
+        gap: 8px;
+      }
+      
+      .category-btn,
+      .special-btn {
+        padding: 12px 8px;
+        font-size: 0.9rem;
+      }
+      
+      .question-text {
+        font-size: 1.1rem;
+      }
+    }
+    
+    /* Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+    
+    /* Focus states for accessibility */
+    button:focus-visible,
+    input:focus-visible,
+    .option-btn:focus-visible {
+      outline: 2px solid var(--neon-blue);
+      outline-offset: 2px;
+    }
+    
+    /* Loading state */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+    }
+    
+    .loading::after {
+      content: '';
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(0, 212, 255, 0.3);
+      border-top-color: var(--neon-blue);
+      border-radius: 50%;
+      margin-left: 12px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Hidden utility */
+    .hidden {
+      display: none !important;
+    }
+    
+    /* Score float animation */
+    .score-float {
+      position: absolute;
+      font-family: var(--font-title);
+      font-weight: 700;
+      color: var(--neon-green);
+      font-size: 1.3rem;
+      pointer-events: none;
+      animation: floatUp 1s ease-out forwards;
+      text-shadow: 0 0 10px var(--neon-green);
+      z-index: 100;
+    }
+    
+    @keyframes floatUp {
+      0% {
+        opacity: 1;
+        transform: translateY(0) scale(0.8);
+      }
+      100% {
+        opacity: 0;
+        transform: translateY(-40px) scale(1.2);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Background Effects -->
+  <div class="bg-grid"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="particles" id="particles"></div>
+  <div class="scanlines"></div>
+  
+  <!-- Notification Container -->
+  <div id="notification-container"></div>
+  
+  <!-- Main Container -->
+  <div class="container">
+    
+    <!-- LOGIN SCREEN -->
+    <section id="login-screen" class="screen active">
+      <div class="logo-container">
+      <div class="logo-wrapper">
+    <i class="fa-solid fa-brain logo-icon"></i>
+</div>
+
+<style>
+.logo-wrapper {
+    display: inline-block;
+    position: relative;
+}
+
+.logo-icon {
+    font-size: 5rem;
+    background: linear-gradient(135deg, #00d4ff 0%, #b44aff 50%, #00ff88 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.6));
+    animation: logoPulse 3s ease-in-out infinite;
+}
+
+@keyframes logoPulse {
+    0%, 100% { 
+        filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.6)) drop-shadow(0 0 20px rgba(180, 74, 255, 0.4));
+    }
+    50% { 
+        filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.8)) drop-shadow(0 0 30px rgba(180, 74, 255, 0.6));
+    }
+}
+</style>
+        <h1 class="logo-title">TCC EXPERIENCE</h1>
+        <p class="logo-subtitle">⚡ Jogo Educativo Multiplayer</p>
+      </div>
+      
+      <div class="input-group">
+        <label class="input-label" for="username-input">NOME DE USUÁRIO</label>
+        <input type="text" id="username-input" class="input-field" placeholder="Digite seu nome" maxlength="20" autocomplete="nickname">
+      </div>
+      
+      <button id="login-btn" class="btn btn-primary">🚀 CONTINUAR</button>
+      
+      <p class="welcome-text">Bem-vindo ao TCC Experience! Aprenda sobre Terapia Cognitivo-Comportamental enquanto se diverte em partidas multiplayer de 10 minutos.</p>
+    </section>
+    
+    <!-- HOME SCREEN -->
+    <section id="home-screen" class="screen">
+      <div class="logo-container">
+        <div class="logo-wrapper">
+    <i class="fa-solid fa-brain logo-icon"></i>
+</div>
+
+<style>
+.logo-wrapper {
+    display: inline-block;
+    position: relative;
+}
+
+.logo-icon {
+    font-size: 5rem;
+    background: linear-gradient(135deg, #00d4ff 0%, #b44aff 50%, #00ff88 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.6));
+    animation: logoPulse 3s ease-in-out infinite;
+}
+
+@keyframes logoPulse {
+    0%, 100% { 
+        filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.6)) drop-shadow(0 0 20px rgba(180, 74, 255, 0.4));
+    }
+    50% { 
+        filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.8)) drop-shadow(0 0 30px rgba(180, 74, 255, 0.6));
+    }
+}
+</style>
+        <h1 class="logo-title">TCC EXPERIENCE</h1>
+        <p class="logo-subtitle">⚡ Jogo Educativo Multiplayer</p>
+      </div>
+      
+      <p id="welcome-message" class="welcome-message">Bem-vindo de volta, <span id="user-name-display">Jogador</span>!</p>
+      
+      <!-- Color Legend -->
+      <div class="color-legend">
+        <div class="legend-item"><div class="legend-dot legend-red"></div> Impulsividade</div>
+        <div class="legend-item"><div class="legend-dot legend-blue"></div> Pensamento Racional</div>
+        <div class="legend-item"><div class="legend-dot legend-yellow"></div> Emoção</div>
+        <div class="legend-item"><div class="legend-dot legend-green"></div> Consciência</div>
+      </div>
+      
+      <!-- How to Play -->
+      <div class="card">
+        <h3 class="card-title">🎮 Como Jogar</h3>
+        <div class="how-to-play">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <div>Crie ou entre em uma sala com amigos</div>
+          </div>
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <div>Responda perguntas na sua vez sobre TCC</div>
+          </div>
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <div>Acumule pontos com combos e casas especiais</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- About Game -->
+      <div class="card">
+        <h3 class="card-title">ℹ️ Sobre o Jogo</h3>
+        <ul class="about-list">
+          <li>Partidas de 10 minutos com até 10 jogadores</li>
+          <li>4 categorias de perguntas sobre Terapia Cognitivo-Comportamental</li>
+          <li>Sistema de combos e casas especiais para estratégia</li>
+          <li>Ranking global com títulos: Iniciante, Aprendiz, Mestre e Deus do TCC</li>
+          <li>Aprenda conceitos de TCC de forma divertida e interativa</li>
+        </ul>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button id="create-room-btn" class="btn btn-primary">🎲 CRIAR SALA</button>
+        <button id="join-room-btn" class="btn btn-secondary">🔗 ENTRAR EM SALA</button>
+        <button id="logout-btn" class="btn btn-outline">🚪 SAIR</button>
+      </div>
+      
+      <!-- Global Ranking -->
+      <div class="card">
+        <h3 class="card-title">🏆 Ranking Global</h3>
+        <div id="global-ranking" class="ranking-list">
+          <div class="loading">Carregando ranking...</div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- LOBBY SCREEN -->
+    <section id="lobby-screen" class="screen">
+      <div class="logo-container">
+        <h1 class="logo-title">TCC EXPERIENCE</h1>
+        <p class="logo-subtitle">⚡ Sala de Espera</p>
+      </div>
+      
+      <p style="text-align: center; color: var(--text-secondary); margin: var(--spacing-sm) 0;">Código da Sala</p>
+      <div id="room-code-display" class="room-code">ABC123</div>
+      
+      <div class="card">
+        <h3 class="card-title">👥 Jogadores na Sala</h3>
+        <div id="players-list" class="players-list">
+          <!-- Players will be added here dynamically -->
+        </div>
+        <p id="player-count" class="player-count">JOGADORES (1/10)</p>
+      </div>
+      
+      <div class="action-buttons">
+        <button id="start-game-btn" class="btn btn-primary" disabled>🎲 INICIAR PARTIDA</button>
+        <button id="leave-lobby-btn" class="btn btn-danger">🚪 SAIR DA SALA</button>
+      </div>
+    </section>
+    
+    <!-- GAME SCREEN -->
+    <section id="game-screen" class="screen">
+      <!-- HUD Superior -->
+      <div class="game-hud">
+        <div class="hud-player">
+          <div class="hud-player-name" id="hud-player-name">Jogador</div>
+          <div class="hud-score" id="hud-score">0</div>
+        </div>
+        <div class="hud-center">
+          <div class="combo-indicator" id="combo-indicator">
+            <span>🔥</span><span id="combo-count">0</span>
+          </div>
+          <div class="xp-bar-container">
+            <div class="xp-bar" id="xp-bar" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="hud-level">
+          <span class="hud-level-name" id="level-name">INICIANTE</span>
+          <span class="level-xp" id="level-xp">0/50 XP</span>
+        </div>
+      </div>
+      
+      <!-- Turn Indicator -->
+      <div id="turn-indicator" class="turn-indicator your-turn">🎮 SUA VEZ DE JOGAR!</div>
+      
+      <!-- Level Progress -->
+      <div class="level-section">
+        <div class="level-title">
+          <span class="level-name" id="current-level">Nível 1: INICIANTE</span>
+          <span class="level-xp" id="xp-to-next">Próximo: 50 XP</span>
+        </div>
+        <div class="level-bar-container">
+          <div class="level-bar" id="level-progress" style="width: 0%"></div>
+        </div>
+      </div>
+      
+      <!-- Tabs Navigation -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="play">🎮 Jogar</button>
+        <button class="tab-btn" data-tab="room">👥 Sala</button>
+        <button class="tab-btn" data-tab="history">📜 Histórico</button>
+      </div>
+      
+      <!-- Tab: Jogar -->
+      <div id="tab-play" class="tab-content active">
+        <!-- Category Buttons -->
+        <div class="category-grid">
+          <button class="category-btn red" data-category="red">
+            <span class="category-icon">🔴</span>
+            <span>Impulsividade</span>
+          </button>
+          <button class="category-btn blue" data-category="blue">
+            <span class="category-icon">🔵</span>
+            <span>Pensamento Racional</span>
+          </button>
+          <button class="category-btn yellow" data-category="yellow">
+            <span class="category-icon">🟡</span>
+            <span>Emoção</span>
+          </button>
+          <button class="category-btn green" data-category="green">
+            <span class="category-icon">🟢</span>
+            <span>Consciência</span>
+          </button>
+        </div>
+        
+        <!-- Special Houses -->
+        <div class="special-houses">
+          <button class="special-btn insight" id="use-insight">
+            <span class="special-icon">💡</span>
+            <span>INSIGHT<br>+20 pts</span>
+          </button>
+          <button class="special-btn impulse" id="use-impulse">
+            <span class="special-icon">⚡</span>
+            <span>IMPULSO<br>-Combo</span>
+          </button>
+          <button class="special-btn reevaluation" id="use-reevaluation">
+            <span class="special-icon">🔄</span>
+            <span>REAVALIAÇÃO<br>+1 pergunta</span>
+          </button>
+        </div>
+        
+        <!-- Question Card -->
+        <div class="question-card">
+          <span class="question-category red" id="question-category">🔴 Impulsividade</span>
+          <div class="question-number" id="question-number">Questão #1</div>
+          <p class="question-text" id="question-text">Carregando pergunta...</p>
+          
+          <div class="options-container">
+            <button class="option-btn" data-option="A">
+              <span class="option-letter">A</span>
+              <span id="option-a">Opção A</span>
+            </button>
+            <button class="option-btn" data-option="B">
+              <span class="option-letter">B</span>
+              <span id="option-b">Opção B</span>
+            </button>
+          </div>
+          
+          <div id="feedback-message" class="feedback-message"></div>
+          
+          <button id="next-round-btn" class="btn btn-secondary hidden">▶️ PRÓXIMA RODADA</button>
+        </div>
+      </div>
+      
+      <!-- Tab: Sala -->
+      <div id="tab-room" class="tab-content">
+        <div class="card">
+          <h3 class="card-title">📊 Ranking da Partida</h3>
+          <div id="room-ranking" class="room-ranking">
+            <!-- Room ranking will be added here dynamically -->
+          </div>
+        </div>
+      </div>
+      
+      <!-- Tab: Histórico -->
+      <div id="tab-history" class="tab-content">
+        <div class="card">
+          <h3 class="card-title">📜 Histórico de Respostas</h3>
+          <div id="history-list" class="history-list">
+            <p style="text-align: center; color: var(--text-muted); padding: 20px;">Nenhuma resposta ainda</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- FINAL SCREEN -->
+    <section id="final-screen" class="screen">
+      <h1 class="final-title">🎉 PARTIDA ENCERRADA!</h1>
+      
+      <div id="winner-badge" class="winner-badge hidden">🏆 VOCÊ VENCEU!</div>
+      
+      <div class="card">
+        <h3 class="card-title">📊 Classificação Final</h3>
+        <div id="final-ranking" class="final-ranking">
+          <!-- Final ranking will be added here dynamically -->
+        </div>
+      </div>
+      
+      <!-- Stats -->
+      <div class="final-stats">
+        <div class="stat-card">
+          <div class="stat-label">Pontos</div>
+          <div class="stat-value" id="final-score">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Posição</div>
+          <div class="stat-value" id="final-position">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Acertos</div>
+          <div class="stat-value" id="final-correct">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Total</div>
+          <div class="stat-value" id="final-total">0</div>
+        </div>
+      </div>
+      
+      <!-- Final Actions -->
+      <div class="final-actions">
+        <button id="new-game-btn" class="btn btn-primary">🔄 NOVA PARTIDA</button>
+        <button id="back-home-btn" class="btn btn-secondary">🏠 VOLTAR PARA HOME</button>
+      </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-title">TCC Experience — Jogo Educativo de Terapia Cognitivo-Comportamental</div>
+      <div class="footer-credits">Criado por Luiz Mariano S Filho</div>
+    </footer>
+    
+    <!-- Footer Buttons (only visible during game) -->
+    <div id="game-footer" class="footer-buttons hidden">
+      <button id="finish-game-btn" class="footer-btn finish">🏁 FINALIZAR</button>
+      <button id="exit-game-btn" class="footer-btn exit">🚪 SAIR</button>
+    </div>
+  </div>
+  
+  <!-- JavaScript Module -->
+  <script type="module">
+    // Wait for Firebase to be available
+    setTimeout(async () => {
+      // ===== CONFIGURAÇÃO E ESTADO GLOBAL =====
+      const state = {
+        currentUser: null,
+        currentRoom: null,
+        currentRoomId: null,
+        isHost: false,
+        gameActive: false,
+        playerData: {
+          score: 0,
+          combo: 0,
+          level: 1,
+          xp: 0,
+          correctAnswers: 0,
+          totalAnswers: 0,
+          finished: false
+        },
+        gameData: {
+          startTime: null,
+          endTime: null,
+          currentTurnIndex: 0,
+          playerOrder: [],
+          questionsUsed: [],
+          specialHousesUsed: {
+            insight: false,
+            impulse: false,
+            reevaluation: false
+          }
+        },
+        currentQuestion: null,
+        answerHistory: [],
+        timer: null,
+        timeRemaining: 600, // 10 minutes in seconds
+        unsubscribeRoom: null,
+        unsubscribePlayers: null
+      };
+      
+      // ===== BANCO DE PERGUNTAS (80 perguntas - 20 por categoria) =====
+      const questionBank = [
+        // 🔴 Impulsividade (20 perguntas)
+        { pergunta: "Não passei na prova → sou um fracasso", opcaoA: "Generalização", opcaoB: "Fato objetivo", correta: "A", explicacao: "Generalizar um evento isolado para toda a identidade é uma distorção cognitiva.", categoria: "red" },
+        { pergunta: "Meu amigo não respondeu → ele me odeia", opcaoA: "Leitura mental", opcaoB: "Evidência concreta", correta: "A", explicacao: "Assumir o que o outro pensa sem prova é leitura mental.", categoria: "red" },
+        { pergunta: "Responder imediatamente com raiva em uma discussão é:", opcaoA: "Impulsividade", opcaoB: "Controle emocional", correta: "A", explicacao: "Agir sem reflexão caracteriza resposta impulsiva.", categoria: "red" },
+        { pergunta: "Agir sem considerar consequências futuras é:", opcaoA: "Impulsividade", opcaoB: "Planejamento", correta: "A", explicacao: "Falta de previsão caracteriza comportamento impulsivo.", categoria: "red" },
+        { pergunta: "Explodir emocionalmente em uma discussão é:", opcaoA: "Impulsividade", opcaoB: "Consciência", correta: "A", explicacao: "Reação intensa sem controle indica impulsividade.", categoria: "red" },
+        { pergunta: "Reagir impulsivamente pode trazer alívio imediato?", opcaoA: "Sim", opcaoB: "Não", correta: "A", explicacao: "Pode aliviar no curto prazo, mas gerar prejuízo depois.", categoria: "red" },
+        { pergunta: "Sentir emoção intensa e agir automaticamente é:", opcaoA: "Impulsividade", opcaoB: "Consciência", correta: "A", explicacao: "Falta de pausa leva a respostas impulsivas.", categoria: "red" },
+        { pergunta: "Reagir automaticamente sem refletir é:", opcaoA: "Impulsividade", opcaoB: "Planejamento", correta: "A", explicacao: "A ausência de pausa caracteriza impulsividade.", categoria: "red" },
+        { pergunta: "Pensar antes de agir reduz:", opcaoA: "Impulsividade", opcaoB: "Consciência", correta: "A", explicacao: "A pausa reduz reatividade automática.", categoria: "red" },
+        { pergunta: "Reagir sem consciência tende a:", opcaoA: "Automatismo", opcaoB: "Controle", correta: "A", explicacao: "Sem percepção, a resposta é automática.", categoria: "red" },
+        { pergunta: "Pensar 'isso é impossível' sem tentar é:", opcaoA: "Distorção", opcaoB: "Conclusão lógica", correta: "A", explicacao: "Conclusões sem tentativa são distorcidas.", categoria: "red" },
+        { pergunta: "Pensar 'eu nunca consigo nada' é:", opcaoA: "Generalização", opcaoB: "Fato", correta: "A", explicacao: "Uso de absolutos indica distorção.", categoria: "red" },
+        { pergunta: "Explodir emocionalmente tende a:", opcaoA: "Gerar consequências negativas", opcaoB: "Resolver conflitos", correta: "A", explicacao: "Reações impulsivas costumam piorar situações.", categoria: "red" },
+        { pergunta: "Ignorar emoções ajuda no controle emocional?", opcaoA: "Sim", opcaoB: "Não", correta: "B", explicacao: "Reconhecer emoções é necessário para regulá-las.", categoria: "red" },
+        { pergunta: "Pensar 'se não for perfeito, é um fracasso' é:", opcaoA: "Pensamento tudo-ou-nada", opcaoB: "Análise realista", correta: "A", explicacao: "Avaliações extremas ignoram nuances e caracterizam distorção cognitiva.", categoria: "red" },
+        { pergunta: "Dizer 'devo ser perfeito sempre' é:", opcaoA: "Regra rígida", opcaoB: "Flexibilidade cognitiva", correta: "A", explicacao: "Regras absolutas geram sofrimento e são pouco realistas.", categoria: "red" },
+        { pergunta: "Rotular-se como 'inútil' após erro é:", opcaoA: "Rotulação", opcaoB: "Avaliação específica", correta: "A", explicacao: "Rotular a identidade a partir de um evento é distorção.", categoria: "red" },
+        { pergunta: "Pensar 'isso sempre acontece comigo' é:", opcaoA: "Generalização", opcaoB: "Fato isolado", correta: "A", explicacao: "Generalizar experiências limita a percepção real.", categoria: "red" },
+        { pergunta: "Pensar 'todos vão me julgar' é:", opcaoA: "Distorção cognitiva", opcaoB: "Fato social", correta: "A", explicacao: "Generalização sem evidência é erro cognitivo.", categoria: "red" },
+        { pergunta: "Pensar 'ninguém gosta de mim' sem prova é:", opcaoA: "Distorção cognitiva", opcaoB: "Fato social", correta: "A", explicacao: "Generalização e leitura mental combinadas.", categoria: "red" },
+        
+        // 🔵 Pensamento Racional (20 perguntas)
+        { pergunta: "Pensar em diferentes explicações antes de concluir algo é:", opcaoA: "Flexibilidade cognitiva", opcaoB: "Confusão mental", correta: "A", explicacao: "Considerar alternativas reduz distorções cognitivas.", categoria: "blue" },
+        { pergunta: "Questionar um pensamento negativo é:", opcaoA: "Reestruturação cognitiva", opcaoB: "Negação da realidade", correta: "A", explicacao: "Reavaliar pensamentos é central na TCC.", categoria: "blue" },
+        { pergunta: "Pensamentos automáticos são:", opcaoA: "Rápidos e involuntários", opcaoB: "Sempre conscientes", correta: "A", explicacao: "Eles surgem automaticamente sem esforço deliberado.", categoria: "blue" },
+        { pergunta: "Pensamentos sem evidência concreta são:", opcaoA: "Distorções cognitivas", opcaoB: "Fatos", correta: "A", explicacao: "Falta de evidência indica erro de interpretação.", categoria: "blue" },
+        { pergunta: "Interpretar um evento de forma mais equilibrada é:", opcaoA: "Reestruturação cognitiva", opcaoB: "Negação", correta: "A", explicacao: "Buscar equilíbrio é objetivo da TCC.", categoria: "blue" },
+        { pergunta: "Perguntar 'quais são as evidências?' é:", opcaoA: "Estratégia cognitiva", opcaoB: "Evitação", correta: "A", explicacao: "Buscar evidências ajuda a desafiar pensamentos automáticos.", categoria: "blue" },
+        { pergunta: "Pensamentos automáticos podem ser questionados?", opcaoA: "Sim", opcaoB: "Não", correta: "A", explicacao: "Eles podem ser identificados e reavaliados.", categoria: "blue" },
+        { pergunta: "Mudança cognitiva envolve:", opcaoA: "Reavaliar pensamentos", opcaoB: "Evitar pensar", correta: "A", explicacao: "A TCC trabalha com modificação de pensamentos.", categoria: "blue" },
+        { pergunta: "Questionar pensamentos melhora:", opcaoA: "Tomada de decisão", opcaoB: "Impulsividade", correta: "A", explicacao: "Pensamento crítico melhora decisões.", categoria: "blue" },
+        { pergunta: "Pensamento flexível significa:", opcaoA: "Considerar alternativas", opcaoB: "Manter uma única visão", correta: "A", explicacao: "Flexibilidade reduz distorções cognitivas.", categoria: "blue" },
+        { pergunta: "Ignorar aspectos positivos e focar só no negativo é:", opcaoA: "Filtro mental", opcaoB: "Realismo", correta: "A", explicacao: "O filtro mental destaca apenas o negativo, distorcendo a percepção.", categoria: "blue" },
+        { pergunta: "Assumir culpa por algo fora do seu controle é:", opcaoA: "Personalização", opcaoB: "Responsabilidade adequada", correta: "A", explicacao: "Atribuir a si causas indevidas é personalização.", categoria: "blue" },
+        { pergunta: "Interpretar uma crítica como ataque pessoal é:", opcaoA: "Distorção cognitiva", opcaoB: "Análise objetiva", correta: "A", explicacao: "A interpretação pode distorcer o significado da crítica.", categoria: "blue" },
+        { pergunta: "Pensar 'posso lidar com isso' é:", opcaoA: "Autoeficácia", opcaoB: "Negação", correta: "A", explicacao: "A crença na capacidade melhora o enfrentamento.", categoria: "blue" },
+        { pergunta: "Reavaliar um pensamento negativo é:", opcaoA: "Reestruturação cognitiva", opcaoB: "Supressão emocional", correta: "A", explicacao: "A TCC busca modificar interpretações disfuncionais.", categoria: "blue" },
+        { pergunta: "Pensar 'posso tentar melhorar' é:", opcaoA: "Mentalidade adaptativa", opcaoB: "Catastrofização", correta: "A", explicacao: "Foco em progresso é mais funcional.", categoria: "blue" },
+        { pergunta: "Pensamento flexível ajuda a:", opcaoA: "Reduzir distorções", opcaoB: "Aumentar rigidez", correta: "A", explicacao: "Considerar múltiplas perspectivas diminui erros cognitivos.", categoria: "blue" },
+        { pergunta: "Questionar 'e se...' de forma catastrófica é:", opcaoA: "Catastrofização", opcaoB: "Planejamento", correta: "A", explicacao: "Antecipar o pior sem base é distorção cognitiva.", categoria: "blue" },
+        { pergunta: "Pensar de forma equilibrada reduz:", opcaoA: "Sofrimento emocional", opcaoB: "Capacidade cognitiva", correta: "A", explicacao: "Interpretações mais realistas diminuem sofrimento.", categoria: "blue" },
+        { pergunta: "A TCC foca na relação entre:", opcaoA: "Pensamento, emoção e comportamento", opcaoB: "Apenas comportamento", correta: "A", explicacao: "Esse é o modelo central da TCC.", categoria: "blue" },
+        
+        // 🟡 Emoção (20 perguntas)
+        { pergunta: "Sentir ansiedade antes de uma apresentação é:", opcaoA: "Uma resposta emocional normal", opcaoB: "Um sinal de incapacidade", correta: "A", explicacao: "A ansiedade pode ser adaptativa em situações de desempenho.", categoria: "yellow" },
+        { pergunta: "Sentir medo antes de uma prova pode ser:", opcaoA: "Emoção adaptativa", opcaoB: "Erro psicológico", correta: "A", explicacao: "O medo pode preparar o organismo para desafios.", categoria: "yellow" },
+        { pergunta: "Sentir ansiedade e ainda agir é:", opcaoA: "Regulação emocional", opcaoB: "Evitação", correta: "A", explicacao: "Agir apesar da emoção é habilidade de regulação.", categoria: "yellow" },
+        { pergunta: "Evitar responder alguém para não piorar a situação pode ser:", opcaoA: "Regulação emocional", opcaoB: "Fraqueza", correta: "A", explicacao: "Adiar resposta pode ser estratégia de controle emocional.", categoria: "yellow" },
+        { pergunta: "Parar e respirar antes de responder é:", opcaoA: "Regulação emocional", opcaoB: "Impulsividade", correta: "A", explicacao: "Pausar ajuda a diminuir reatividade emocional.", categoria: "yellow" },
+        { pergunta: "Agir apesar do medo demonstra:", opcaoA: "Regulação emocional", opcaoB: "Evitação", correta: "A", explicacao: "Enfrentar situações é parte do controle emocional.", categoria: "yellow" },
+        { pergunta: "Responder de forma calma em conflito é:", opcaoA: "Regulação emocional", opcaoB: "Passividade", correta: "A", explicacao: "Controle não significa ausência de posicionamento.", categoria: "yellow" },
+        { pergunta: "Controlar emoções significa eliminá-las?", opcaoA: "Sim", opcaoB: "Não", correta: "B", explicacao: "Controle emocional envolve lidar, não eliminar.", categoria: "yellow" },
+        { pergunta: "A emoção surge independente dos pensamentos?", opcaoA: "Sim", opcaoB: "Não", correta: "B", explicacao: "Na TCC, pensamentos influenciam emoções.", categoria: "yellow" },
+        { pergunta: "Pensamentos influenciam emoções?", opcaoA: "Sim", opcaoB: "Não", correta: "A", explicacao: "Esse é um princípio central da TCC.", categoria: "yellow" },
+        { pergunta: "Evitar situações que causam ansiedade SEMPRE ajuda?", opcaoA: "Sim", opcaoB: "Não", correta: "B", explicacao: "Evitação pode manter ou aumentar a ansiedade a longo prazo.", categoria: "yellow" },
+        { pergunta: "Evitar completamente situações difíceis tende a:", opcaoA: "Manter o problema", opcaoB: "Resolver o problema", correta: "A", explicacao: "Evitação reforça o medo ao longo do tempo.", categoria: "yellow" },
+        { pergunta: "Evitar desafios reduz ansiedade a longo prazo?", opcaoA: "Sim", opcaoB: "Não", correta: "B", explicacao: "Evitação mantém o ciclo de ansiedade.", categoria: "yellow" },
+        { pergunta: "Todo pensamento negativo é falso?", opcaoA: "Sim", opcaoB: "Não", correta: "B", explicacao: "Nem todo pensamento negativo é distorcido.", categoria: "yellow" },
+        { pergunta: "Pensar 'isso é difícil, mas posso tentar' é:", opcaoA: "Pensamento adaptativo", opcaoB: "Catastrofização", correta: "A", explicacao: "Reconhece dificuldade sem exagerar consequências.", categoria: "yellow" },
+        { pergunta: "Pensar 'vai dar tudo errado' é:", opcaoA: "Catastrofização", opcaoB: "Planejamento estratégico", correta: "A", explicacao: "Antecipar o pior cenário sem base é distorção.", categoria: "yellow" },
+        { pergunta: "Prever o pior sem evidência é:", opcaoA: "Catastrofização", opcaoB: "Planejamento", correta: "A", explicacao: "Antecipar desastre sem base é distorção.", categoria: "yellow" },
+        { pergunta: "Pensar 'se algo der errado, será um desastre total' é:", opcaoA: "Catastrofização", opcaoB: "Planejamento", correta: "A", explicacao: "Exagerar consequências negativas caracteriza catastrofização.", categoria: "yellow" },
+        { pergunta: "Consciência emocional permite:", opcaoA: "Maior controle", opcaoB: "Menor controle", correta: "A", explicacao: "Reconhecer emoções melhora regulação.", categoria: "yellow" },
+        { pergunta: "Reavaliar pensamentos ajuda a:", opcaoA: "Regular emoções", opcaoB: "Ignorar emoções", correta: "A", explicacao: "Cognição e emoção estão conectadas.", categoria: "yellow" },
+        
+        // 🟢 Consciência (20 perguntas)
+        { pergunta: "Perceber que estou nervoso antes de agir é:", opcaoA: "Consciência emocional", opcaoB: "Impulsividade", correta: "A", explicacao: "Reconhecer o próprio estado interno é autoconsciência.", categoria: "green" },
+        { pergunta: "Identificar um pensamento distorcido é:", opcaoA: "Consciência cognitiva", opcaoB: "Reação emocional", correta: "A", explicacao: "Perceber padrões de pensamento é metacognição.", categoria: "green" },
+        { pergunta: "Perceber uma emoção antes de agir permite:", opcaoA: "Maior controle comportamental", opcaoB: "Reação automática", correta: "A", explicacao: "A consciência antecede a regulação.", categoria: "green" },
+        { pergunta: "Observar seus próprios pensamentos é:", opcaoA: "Metacognição", opcaoB: "Impulsividade", correta: "A", explicacao: "Refletir sobre o próprio pensamento é metacognição.", categoria: "green" },
+        { pergunta: "Observar pensamentos sem julgá-los é:", opcaoA: "Consciência", opcaoB: "Evitação", correta: "A", explicacao: "Observar sem reagir aumenta controle cognitivo.", categoria: "green" },
+        { pergunta: "Consciência vem antes do controle?", opcaoA: "Sim", opcaoB: "Não", correta: "A", explicacao: "É preciso perceber para conseguir regular.", categoria: "green" },
+        { pergunta: "A consciência permite:", opcaoA: "Escolha de resposta", opcaoB: "Reação automática", correta: "A", explicacao: "Perceber possibilita agir de forma mais controlada.", categoria: "green" },
+        { pergunta: "Perceber que estou ansioso antes de uma decisão é:", opcaoA: "Consciência emocional", opcaoB: "Fraqueza", correta: "A", explicacao: "Reconhecer emoções é o primeiro passo para regulá-las.", categoria: "green" },
+        { pergunta: "Identificar gatilhos emocionais é parte de:", opcaoA: "Consciência", opcaoB: "Impulsividade", correta: "A", explicacao: "Reconhecer o que dispara emoções aumenta autocontrole.", categoria: "green" },
+        { pergunta: "Observar reações automáticas sem julgamento é:", opcaoA: "Mindfulness", opcaoB: "Evitação", correta: "A", explicacao: "Prática de atenção plena aumenta consciência.", categoria: "green" },
+        { pergunta: "Pensamentos influenciam emoções?", opcaoA: "Sim", opcaoB: "Não", correta: "A", explicacao: "Esse é um princípio central da TCC.", categoria: "green" },
+        { pergunta: "Consciência emocional ajuda a:", opcaoA: "Regular respostas", opcaoB: "Amplificar reações", correta: "A", explicacao: "Reconhecer emoções permite escolher respostas mais adaptativas.", categoria: "green" },
+        { pergunta: "Perceber padrões de pensamento repetitivos é:", opcaoA: "Metacognição", opcaoB: "Confusão", correta: "A", explicacao: "Refletir sobre padrões cognitivos é metacognição.", categoria: "green" },
+        { pergunta: "A consciência permite interromper:", opcaoA: "Ciclos automáticos", opcaoB: "Pensamentos racionais", correta: "A", explicacao: "Perceber padrões permite escolher novas respostas.", categoria: "green" },
+        { pergunta: "Observar emoções sem reagir imediatamente é:", opcaoA: "Regulação emocional", opcaoB: "Supressão", correta: "A", explicacao: "Pausar entre emoção e ação é habilidade de regulação.", categoria: "green" },
+        { pergunta: "Consciência de gatilhos ajuda a:", opcaoA: "Preparar respostas", opcaoB: "Evitar situações", correta: "A", explicacao: "Antecipar gatilhos permite escolher respostas mais adaptativas.", categoria: "green" },
+        { pergunta: "Reconhecer distorções cognitivas é:", opcaoA: "Consciência cognitiva", opcaoB: "Julgamento", correta: "A", explicacao: "Identificar erros de pensamento é metacognição.", categoria: "green" },
+        { pergunta: "A consciência emocional permite:", opcaoA: "Escolher respostas", opcaoB: "Reagir automaticamente", correta: "A", explicacao: "Perceber emoções dá espaço para escolha consciente.", categoria: "green" },
+        { pergunta: "Observar pensamentos como eventos mentais é:", opcaoA: "Desfusão cognitiva", opcaoB: "Identificação", correta: "A", explicacao: "Ver pensamentos como eventos, não fatos, reduz impacto.", categoria: "green" },
+        { pergunta: "Consciência do momento presente é:", opcaoA: "Mindfulness", opcaoB: "Distração", correta: "A", explicacao: "Focar no aqui-e-agora é prática de atenção plena.", categoria: "green" }
+      ];
+      
+      // ===== NÍVEIS E XP =====
+      const levels = [
+        { name: "INICIANTE", xp: 0 },
+        { name: "APRENDIZ", xp: 50 },
+        { name: "EXPLORADOR", xp: 150 },
+        { name: "PENSADOR", xp: 300 },
+        { name: "ESTRATEGISTA", xp: 500 },
+        { name: "MESTRE TCC", xp: 800 },
+        { name: "LENDA", xp: 1200 },
+        { name: "TRANSCENDENTE", xp: 1800 }
+      ];
+      
+      // ===== FUNÇÕES UTILITÁRIAS =====
+      function generateRoomCode() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let code = '';
+        for (let i = 0; i < 6; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
+      }
+      
+      function getCurrentLevel(xp) {
+        for (let i = levels.length - 1; i >= 0; i--) {
+          if (xp >= levels[i].xp) {
+            return { level: i + 1, name: levels[i].name, nextXp: levels[i + 1]?.xp || levels[i].xp + 600 };
+          }
+        }
+        return { level: 1, name: levels[0].name, nextXp: levels[1].xp };
+      }
+      
+      function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }
+      
+      function shuffleArray(array) {
+        const newArray = [...array];
+        for (let i = newArray.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+        }
+        return newArray;
+      }
+      
+      function getRandomQuestion(category, usedIds = []) {
+        // Filter questions by category and exclude used ones
+        const available = questionBank.filter(q => 
+          q.categoria === category && !usedIds.includes(questionBank.indexOf(q))
+        );
+        
+        if (available.length === 0) {
+          // If all questions in category used, reset usedIds for this category
+          return questionBank.filter(q => q.categoria === category)[0];
+        }
+        
+        return available[Math.floor(Math.random() * available.length)];
+      }
+      
+      function showNotification(message, type = 'info') {
+        const container = document.getElementById('notification-container');
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        
+        const icons = {
+          info: 'ℹ️',
+          success: '✅',
+          warning: '⚠️',
+          error: '❌'
+        };
+        
+        notification.innerHTML = `
+          <div class="notification-content">
+            <span class="notification-icon">${icons[type] || icons.info}</span>
+            <span class="notification-text">${message}</span>
+            <button class="notification-close">&times;</button>
+          </div>
+        `;
+        
+        container.appendChild(notification);
+        
+        // Close button handler
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+          notification.remove();
+        });
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.style.transform = 'translateX(400px)';
+            setTimeout(() => notification.remove(), 300);
+          }
+        }, 5000);
+      }
+      
+      function createConfetti() {
+        const colors = ['#00d4ff', '#00ff88', '#b44aff', '#ff2d75', '#ffe44d', '#ff3355', '#ff8844'];
+        const container = document.body;
+        
+        for (let i = 0; i < 50; i++) {
+          const confetti = document.createElement('div');
+          confetti.className = 'confetti';
+          confetti.style.left = `${Math.random() * 100}%`;
+          confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+          confetti.style.width = `${Math.random() * 8 + 4}px`;
+          confetti.style.height = confetti.style.width;
+          confetti.style.animationDuration = `${Math.random() * 2 + 2}s`;
+          confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+          container.appendChild(confetti);
+          
+          // Remove after animation
+          setTimeout(() => confetti.remove(), 3000);
+        }
+      }
+      
+      function createParticles() {
+        const container = document.getElementById('particles');
+        const colors = ['#00d4ff', '#00ff88', '#b44aff'];
+        
+        for (let i = 0; i < 15; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+          particle.style.left = `${Math.random() * 100}%`;
+          particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+          particle.style.animationDelay = `${Math.random() * 8}s`;
+          particle.style.animationDuration = `${Math.random() * 4 + 6}s`;
+          container.appendChild(particle);
+        }
+      }
+      
+      function showScoreFloat(points, element) {
+        const rect = element.getBoundingClientRect();
+        const float = document.createElement('div');
+        float.className = 'score-float';
+        float.textContent = `+${points}`;
+        float.style.left = `${rect.left + rect.width/2}px`;
+        float.style.top = `${rect.top}px`;
+        document.body.appendChild(float);
+        
+        setTimeout(() => float.remove(), 1000);
+      }
+      
+      // ===== NAVEGAÇÃO ENTRE TELAS =====
+      function showScreen(screenId) {
+        // Hide all screens
+        document.querySelectorAll('.screen').forEach(screen => {
+          screen.classList.remove('active');
+        });
+        
+        // Show target screen
+        document.getElementById(screenId).classList.add('active');
+        
+        // Show/hide footer buttons based on screen
+        const gameFooter = document.getElementById('game-footer');
+        if (screenId === 'game-screen' && state.gameActive) {
+          gameFooter.classList.remove('hidden');
+        } else {
+          gameFooter.classList.add('hidden');
+        }
+        
+        console.log(`[NAV] Screen changed to: ${screenId}`);
+      }
+      
+      // ===== AUTENTICAÇÃO E USUÁRIO =====
+      function saveUser(username) {
+        const userData = {
+          name: username,
+          joinedAt: new Date().toISOString()
+        };
+        localStorage.setItem('tcc_currentUser', JSON.stringify(userData));
+        state.currentUser = userData;
+        console.log(`[AUTH] User saved: ${username}`);
+      }
+      
+      function loadUser() {
+        const saved = localStorage.getItem('tcc_currentUser');
+        if (saved) {
+          try {
+            state.currentUser = JSON.parse(saved);
+            console.log(`[AUTH] User loaded: ${state.currentUser.name}`);
+            return true;
+          } catch (e) {
+            console.error('[AUTH] Error loading user:', e);
+            localStorage.removeItem('tcc_currentUser');
+          }
+        }
+        return false;
+      }
+      
+      function logout() {
+        localStorage.removeItem('tcc_currentUser');
+        state.currentUser = null;
+        state.currentRoom = null;
+        state.currentRoomId = null;
+        state.gameActive = false;
+        console.log('[AUTH] User logged out');
+        showScreen('login-screen');
+      }
+      
+      // ===== FIRESTORE OPERAÇÕES =====
+      async function createRoom() {
+        if (!state.currentUser) {
+          showNotification('Você precisa estar logado para criar uma sala', 'error');
+          return;
+        }
+        
+        const roomCode = generateRoomCode();
+        const roomId = `room_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+        
+        const roomData = {
+          code: roomCode,
+          status: 'waiting',
+          createdAt: firebase.firestore.serverTimestamp(),
+          startTime: null,
+          endTime: null,
+          hostId: state.currentUser.name,
+          maxPlayers: 10,
+          playerOrder: [],
+          currentTurnIndex: 0
+        };
+        
+        try {
+          await firebase.setDoc(firebase.doc(firebase.db, 'rooms', roomId), roomData);
+          
+          // Add host as first player
+          await firebase.setDoc(firebase.doc(firebase.db, 'rooms', roomId, 'players', state.currentUser.name), {
+            name: state.currentUser.name,
+            score: 0,
+            finished: false,
+            left: false,
+            joinedAt: firebase.firestore.serverTimestamp(),
+            isHost: true,
+            order: 0
+          });
+          
+          state.currentRoomId = roomId;
+          state.currentRoom = roomData;
+          state.isHost = true;
+          
+          console.log(`[ROOM] Created room: ${roomId} with code: ${roomCode}`);
+          showScreen('lobby-screen');
+          setupLobbyListeners(roomId);
+          updateLobbyUI();
+          
+        } catch (error) {
+          console.error('[ROOM] Error creating room:', error);
+          showNotification('Erro ao criar sala. Tente novamente.', 'error');
+        }
+      }
+      
+      async function joinRoom(roomCode) {
+        if (!state.currentUser) {
+          showNotification('Você precisa estar logado para entrar em uma sala', 'error');
+          return;
+        }
+        
+        try {
+          // Find room by code
+          const roomsRef = firebase.collection(firebase.db, 'rooms');
+          const q = firebase.query(roomsRef, 
+            firebase.where('code', '==', roomCode.toUpperCase()),
+            firebase.where('status', '==', 'waiting')
+          );
+          
+          const querySnapshot = await firebase.getDocs(q);
+          
+          if (querySnapshot.empty) {
+            showNotification('Sala não encontrada ou já em jogo', 'error');
+            return;
+          }
+          
+          const roomDoc = querySnapshot.docs[0];
+          const roomId = roomDoc.id;
+          const roomData = roomDoc.data();
+          
+          // Check if player already in room
+          const playerDoc = await firebase.getDoc(firebase.doc(firebase.db, 'rooms', roomId, 'players', state.currentUser.name));
+          if (playerDoc.exists()) {
+            showNotification('Você já está nesta sala', 'info');
+            state.currentRoomId = roomId;
+            state.currentRoom = roomData;
+            state.isHost = playerDoc.data().isHost;
+            showScreen('lobby-screen');
+            setupLobbyListeners(roomId);
+            updateLobbyUI();
+            return;
+          }
+          
+          // Check if room is full
+          const playersSnapshot = await firebase.getDocs(firebase.collection(firebase.db, 'rooms', roomId, 'players'));
+          if (playersSnapshot.size >= roomData.maxPlayers) {
+            showNotification('Sala cheia', 'error');
+            return;
+          }
+          
+          // Add player to room
+          await firebase.setDoc(firebase.doc(firebase.db, 'rooms', roomId, 'players', state.currentUser.name), {
+            name: state.currentUser.name,
+            score: 0,
+            finished: false,
+            left: false,
+            joinedAt: firebase.firestore.serverTimestamp(),
+            isHost: false,
+            order: playersSnapshot.size
+          });
+          
+          state.currentRoomId = roomId;
+          state.currentRoom = roomData;
+          state.isHost = false;
+          
+          console.log(`[ROOM] Joined room: ${roomId}`);
+          showScreen('lobby-screen');
+          setupLobbyListeners(roomId);
+          updateLobbyUI();
+          
+        } catch (error) {
+          console.error('[ROOM] Error joining room:', error);
+          showNotification('Erro ao entrar na sala', 'error');
+        }
+      }
+      
+      function setupLobbyListeners(roomId) {
+        // Listen to room changes
+        if (state.unsubscribeRoom) state.unsubscribeRoom();
+        state.unsubscribeRoom = firebase.onSnapshot(firebase.doc(firebase.db, 'rooms', roomId), (doc) => {
+          if (doc.exists()) {
+            state.currentRoom = doc.data();
+            updateLobbyUI();
+            
+            // If game started, switch to game screen
+            if (state.currentRoom.status === 'playing' && !state.gameActive) {
+              startGame();
+            }
+          }
+        });
+        
+        // Listen to players changes
+        if (state.unsubscribePlayers) state.unsubscribePlayers();
+        state.unsubscribePlayers = firebase.onSnapshot(
+          firebase.collection(firebase.db, 'rooms', roomId, 'players'),
+          (snapshot) => {
+            updatePlayersList(snapshot);
+          }
+        );
+      }
+      
+      function updateLobbyUI() {
+        if (!state.currentRoom) return;
+        
+        // Update room code display
+        document.getElementById('room-code-display').textContent = state.currentRoom.code;
+        
+        // Update player count
+        const playerCount = document.querySelectorAll('#players-list .player-item').length;
+        document.getElementById('player-count').textContent = `JOGADORES (${playerCount}/10)`;
+        
+        // Enable start button for host if enough players
+        const startBtn = document.getElementById('start-game-btn');
+        if (state.isHost && playerCount >= 2) {
+          startBtn.disabled = false;
+        } else {
+          startBtn.disabled = true;
+        }
+      }
+      
+      function updatePlayersList(snapshot) {
+        const container = document.getElementById('players-list');
+        container.innerHTML = '';
+        
+        snapshot.forEach(doc => {
+          const player = doc.data();
+          if (player.left) return;
+          
+          const playerEl = document.createElement('div');
+          playerEl.className = `player-item ${player.isHost ? 'host' : ''}`;
+          
+          let statusText = 'Aguardando';
+          let statusClass = 'status-waiting';
+          
+          if (state.currentRoom?.status === 'playing') {
+            if (player.finished) {
+              statusText = 'Finalizado';
+              statusClass = 'status-finished';
+            } else {
+              statusText = 'Jogando';
+              statusClass = 'status-playing';
+            }
+          }
+          
+          playerEl.innerHTML = `
+            <span class="player-name">
+              ${player.isHost ? '👑 ' : ''}${player.name}
+              ${player.name === state.currentUser?.name ? '<span class="room-player-you">VOCÊ</span>' : ''}
+            </span>
+            <span class="player-status ${statusClass}">${statusText}</span>
+          `;
+          
+          container.appendChild(playerEl);
+        });
+        
+        updateLobbyUI();
+      }
+      
+      async function startGame() {
+        if (!state.currentRoomId || !state.isHost) return;
+        
+        try {
+          // Shuffle player order
+          const playersSnapshot = await firebase.getDocs(
+            firebase.collection(firebase.db, 'rooms', state.currentRoomId, 'players')
+          );
+          
+          const players = [];
+          playersSnapshot.forEach(doc => {
+            const player = doc.data();
+            if (!player.left) players.push(player.name);
+          });
+          
+          const shuffledOrder = shuffleArray(players);
+          
+          // Update room with game start data
+          await firebase.updateDoc(firebase.doc(firebase.db, 'rooms', state.currentRoomId), {
+            status: 'playing',
+            startTime: firebase.firestore.serverTimestamp(),
+            playerOrder: shuffledOrder,
+            currentTurnIndex: 0
+          });
+          
+          // Reset player data
+          state.playerData = {
+            score: 0,
+            combo: 0,
+            level: 1,
+            xp: 0,
+            correctAnswers: 0,
+            totalAnswers: 0,
+            finished: false
+          };
+          
+          state.gameData = {
+            startTime: Date.now(),
+            endTime: Date.now() + 600000, // 10 minutes
+            currentTurnIndex: 0,
+            playerOrder: shuffledOrder,
+            questionsUsed: [],
+            specialHousesUsed: {
+              insight: false,
+              impulse: false,
+              reevaluation: false
+            }
+          };
+          
+          state.gameActive = true;
+          state.timeRemaining = 600;
+          
+          console.log('[GAME] Game started');
+          showScreen('game-screen');
+          setupGameListeners();
+          startTimer();
+          loadQuestion();
+          updateHUD();
+          
+        } catch (error) {
+          console.error('[GAME] Error starting game:', error);
+          showNotification('Erro ao iniciar partida', 'error');
+        }
+      }
+      
+      function setupGameListeners() {
+        // Listen to room for turn changes and game end
+        if (state.unsubscribeRoom) state.unsubscribeRoom();
+        state.unsubscribeRoom = firebase.onSnapshot(firebase.doc(firebase.db, 'rooms', state.currentRoomId), (doc) => {
+          if (doc.exists()) {
+            const room = doc.data();
+            state.currentRoom = room;
+            
+            // Update turn indicator
+            updateTurnIndicator();
+            
+            // Check if game ended
+            if (room.status === 'finished' && state.gameActive) {
+              endGame();
+            }
+          }
+        });
+        
+        // Listen to players for ranking updates
+        if (state.unsubscribePlayers) state.unsubscribePlayers();
+        state.unsubscribePlayers = firebase.onSnapshot(
+          firebase.collection(firebase.db, 'rooms', state.currentRoomId, 'players'),
+          (snapshot) => {
+            updateRoomRanking(snapshot);
+          }
+        );
+      }
+      
+      function startTimer() {
+        if (state.timer) clearInterval(state.timer);
+        
+        state.timer = setInterval(() => {
+          state.timeRemaining--;
+          
+          // Update timer display if we had one
+          if (state.timeRemaining <= 60) {
+            // Warning: less than 1 minute
+            const indicator = document.getElementById('turn-indicator');
+            if (indicator && !indicator.classList.contains('your-turn')) {
+              indicator.classList.add('timer-warning');
+            }
+          }
+          
+          if (state.timeRemaining <= 0) {
+            clearInterval(state.timer);
+            endGame();
+          }
+        }, 1000);
+      }
+      
+      function updateTurnIndicator() {
+        if (!state.currentRoom || !state.gameActive) return;
+        
+        const indicator = document.getElementById('turn-indicator');
+        const currentPlayer = state.currentRoom.playerOrder[state.currentRoom.currentTurnIndex];
+        
+        if (currentPlayer === state.currentUser?.name) {
+          indicator.textContent = '🎮 SUA VEZ DE JOGAR!';
+          indicator.className = 'turn-indicator your-turn';
+        } else {
+          indicator.textContent = `⏳ Vez do jogador ${currentPlayer}`;
+          indicator.className = 'turn-indicator other-turn';
+        }
+      }
+      
+      function loadQuestion() {
+        if (!state.currentRoom) return;
+        
+        // Determine category based on turn or let player choose
+        // For now, random category
+        const categories = ['red', 'blue', 'yellow', 'green'];
+        const category = categories[Math.floor(Math.random() * categories.length)];
+        
+        const question = getRandomQuestion(category, state.gameData.questionsUsed);
+        const questionIndex = questionBank.indexOf(question);
+        
+        state.currentQuestion = { ...question, index: questionIndex };
+        state.gameData.questionsUsed.push(questionIndex);
+        
+        // Update UI
+        document.getElementById('question-category').textContent = 
+          `${getCategoryEmoji(category)} ${getCategoryName(category)}`;
+        document.getElementById('question-category').className = `question-category ${category}`;
+        
+        document.getElementById('question-number').textContent = `Questão #${state.playerData.totalAnswers + 1}`;
+        document.getElementById('question-text').textContent = question.pergunta;
+        document.getElementById('option-a').textContent = question.opcaoA;
+        document.getElementById('option-b').textContent = question.opcaoB;
+        
+        // Reset feedback and buttons
+        document.getElementById('feedback-message').className = 'feedback-message';
+        document.getElementById('feedback-message').style.display = 'none';
+        document.getElementById('next-round-btn').classList.add('hidden');
+        
+        // Reset option buttons
+        document.querySelectorAll('.option-btn').forEach(btn => {
+          btn.classList.remove('correct', 'incorrect');
+          btn.disabled = false;
+        });
+        
+        console.log(`[QUESTION] Loaded question from category: ${category}`);
+      }
+      
+      function getCategoryEmoji(category) {
+        const emojis = { red: '🔴', blue: '🔵', yellow: '🟡', green: '🟢' };
+        return emojis[category] || '⚪';
+      }
+      
+      function getCategoryName(category) {
+        const names = { 
+          red: 'Impulsividade', 
+          blue: 'Pensamento Racional', 
+          yellow: 'Emoção', 
+          green: 'Consciência' 
+        };
+        return names[category] || 'Desconhecida';
+      }
+      
+      function handleAnswer(selectedOption) {
+        if (!state.currentQuestion || state.playerData.finished) return;
+        
+        const question = state.currentQuestion;
+        const isCorrect = selectedOption === question.correta;
+        
+        // Calculate points
+        let points = 10; // Base points
+        
+        // Category bonus
+        const categoryBonuses = { red: 5, blue: 10, yellow: 5, green: 15 };
+        points += categoryBonuses[question.categoria] || 0;
+        
+        // Combo bonus
+        if (isCorrect) {
+          state.playerData.combo++;
+          if (state.playerData.combo >= 4) points += 25;
+          else if (state.playerData.combo === 3) points += 20;
+          else if (state.playerData.combo === 2) points += 15;
+        } else {
+          state.playerData.combo = 0;
+          showNotification('Volte 1 casa', 'warning');
+        }
+        
+        // Update player data
+        state.playerData.totalAnswers++;
+        if (isCorrect) {
+          state.playerData.correctAnswers++;
+          state.playerData.score += points;
+          state.playerData.xp += points;
+          
+          // Show feedback
+          showFeedback(true, question.explicacao, points);
+          showScoreFloat(points, document.querySelector(`.option-btn[data-option="${selectedOption}"]`));
+        } else {
+          showFeedback(false, question.explicacao, 0);
+        }
+        
+        // Update level
+        const levelInfo = getCurrentLevel(state.playerData.xp);
+        if (levelInfo.level > state.playerData.level) {
+          state.playerData.level = levelInfo.level;
+          showNotification(`🎉 Nível up! Agora você é ${levelInfo.name}!`, 'success');
+        }
+        
+        // Update UI
+        updateHUD();
+        
+        // Disable option buttons
+        document.querySelectorAll('.option-btn').forEach(btn => {
+          btn.disabled = true;
+          if (btn.dataset.option === question.correta) {
+            btn.classList.add('correct');
+          } else if (btn.dataset.option === selectedOption && !isCorrect) {
+            btn.classList.add('incorrect');
+          }
+        });
+        
+        // Show next round button
+        document.getElementById('next-round-btn').classList.remove('hidden');
+        
+        // Save answer to history
+        state.answerHistory.push({
+          question: question.pergunta,
+          selected: selectedOption,
+          correct: question.correta,
+          isCorrect,
+          points: isCorrect ? points : 0,
+          category: question.categoria
+        });
+        
+        // Update history UI
+        updateHistoryUI();
+        
+        // Update Firebase if it's player's turn
+        if (state.currentRoom?.playerOrder[state.currentRoom.currentTurnIndex] === state.currentUser?.name) {
+          updatePlayerScoreInFirebase();
+        }
+        
+        console.log(`[ANSWER] ${isCorrect ? 'Correct' : 'Incorrect'}: +${isCorrect ? points : 0} points`);
+      }
+      
+      function showFeedback(isCorrect, explanation, points) {
+        const feedback = document.getElementById('feedback-message');
+        feedback.textContent = explanation;
+        feedback.className = `feedback-message show ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}`;
+      }
+      
+      function updateHUD() {
+        // Update player name and score
+        document.getElementById('hud-player-name').textContent = state.currentUser?.name || 'Jogador';
+        document.getElementById('hud-score').textContent = state.playerData.score;
+        
+        // Update combo
+        const comboEl = document.getElementById('combo-count');
+        comboEl.textContent = state.playerData.combo;
+        const comboIndicator = document.getElementById('combo-indicator');
+        if (state.playerData.combo >= 3) {
+          comboIndicator.classList.add('combo-high');
+        } else {
+          comboIndicator.classList.remove('combo-high');
+        }
+        
+        // Update XP bar
+        const levelInfo = getCurrentLevel(state.playerData.xp);
+        const xpInLevel = state.playerData.xp - levelInfo.xp;
+        const xpToNext = levelInfo.nextXp - levelInfo.xp;
+        const xpPercent = Math.min(100, (xpInLevel / xpToNext) * 100);
+        document.getElementById('xp-bar').style.width = `${xpPercent}%`;
+        
+        // Update level info
+        document.getElementById('level-name').textContent = levelInfo.name;
+        document.getElementById('level-xp').textContent = `${state.playerData.xp}/${levelInfo.nextXp} XP`;
+        document.getElementById('current-level').textContent = `Nível ${levelInfo.level}: ${levelInfo.name}`;
+        document.getElementById('xp-to-next').textContent = `Próximo: ${levelInfo.nextXp} XP`;
+        document.getElementById('level-progress').style.width = `${xpPercent}%`;
+      }
+      
+      function updatePlayerScoreInFirebase() {
+        if (!state.currentRoomId) return;
+        
+        firebase.updateDoc(
+          firebase.doc(firebase.db, 'rooms', state.currentRoomId, 'players', state.currentUser.name),
+          {
+            score: state.playerData.score,
+            finished: state.playerData.finished
+          }
+        ).catch(error => {
+          console.error('[FIREBASE] Error updating player score:', error);
+        });
+      }
+      
+      function updateRoomRanking(snapshot) {
+        const container = document.getElementById('room-ranking');
+        container.innerHTML = '';
+        
+        const players = [];
+        snapshot.forEach(doc => {
+          const player = doc.data();
+          if (!player.left) players.push(player);
+        });
+        
+        // Sort by score descending
+        players.sort((a, b) => b.score - a.score);
+        
+        players.forEach((player, index) => {
+          const item = document.createElement('div');
+          item.className = `room-ranking-item ${player.name === state.currentUser?.name ? 'you' : ''}`;
+          
+          let positionIcon = index + 1;
+          if (index === 0) positionIcon = '🥇';
+          else if (index === 1) positionIcon = '🥈';
+          else if (index === 2) positionIcon = '🥉';
+          
+          item.innerHTML = `
+            <span class="room-position">${positionIcon}</span>
+            <div class="room-player-info">
+              <span class="room-player-name">
+                ${player.name}
+                ${player.name === state.currentUser?.name ? '<span class="room-player-you">VOCÊ</span>' : ''}
+              </span>
+            </div>
+            <span class="room-player-score">${player.score}</span>
+          `;
+          
+          container.appendChild(item);
+        });
+      }
+      
+      function updateHistoryUI() {
+        const container = document.getElementById('history-list');
+        
+        if (state.answerHistory.length === 0) {
+          container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 20px;">Nenhuma resposta ainda</p>';
+          return;
+        }
+        
+        // Show last 10 answers
+        const recent = state.answerHistory.slice(-10).reverse();
+        
+        container.innerHTML = recent.map(item => `
+          <div class="history-item ${item.isCorrect ? 'correct' : 'incorrect'}">
+            <span class="history-icon ${item.isCorrect ? 'history-correct' : 'history-incorrect'}">
+              ${item.isCorrect ? '✅' : '❌'}
+            </span>
+            <div class="history-content">
+              <div class="history-question">${item.question}</div>
+              <div class="history-points">${item.isCorrect ? `+${item.points} pts` : '0 pts'}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+      
+      function nextRound() {
+        // Check if it's still player's turn
+        if (state.currentRoom?.playerOrder[state.currentRoom.currentTurnIndex] !== state.currentUser?.name) {
+          showNotification('Aguarde sua vez', 'info');
+          return;
+        }
+        
+        // Move to next player
+        state.currentRoom.currentTurnIndex = (state.currentRoom.currentTurnIndex + 1) % state.currentRoom.playerOrder.length;
+        
+        // Update Firebase
+        firebase.updateDoc(
+          firebase.doc(firebase.db, 'rooms', state.currentRoomId),
+          { currentTurnIndex: state.currentRoom.currentTurnIndex }
+        ).catch(error => {
+          console.error('[FIREBASE] Error updating turn:', error);
+        });
+        
+        // Load next question
+        loadQuestion();
+        updateTurnIndicator();
+      }
+      
+      function useSpecialHouse(type) {
+        if (state.gameData.specialHousesUsed[type] || !state.currentQuestion) {
+          showNotification('Esta casa especial já foi usada nesta rodada', 'warning');
+          return;
+        }
+        
+        if (type === 'insight') {
+          // +20 points
+          state.playerData.score += 20;
+          state.playerData.xp += 20;
+          showScoreFloat(20, document.getElementById('use-insight'));
+          showNotification('💡 INSIGHT! +20 pontos', 'success');
+        } else if (type === 'impulse') {
+          // Lose combo but get a chance
+          state.playerData.combo = 0;
+          showNotification('⚡ IMPULSO! Combo reiniciado', 'warning');
+        } else if (type === 'reevaluation') {
+          // Get one more question this turn
+          loadQuestion();
+          showNotification('🔄 REAVALIAÇÃO! Nova pergunta', 'info');
+          return; // Don't mark as used yet
+        }
+        
+        // Mark as used
+        state.gameData.specialHousesUsed[type] = true;
+        updateHUD();
+        updatePlayerScoreInFirebase();
+      }
+      
+      async function finishGame() {
+        if (state.playerData.finished) {
+          showNotification('Você já finalizou esta partida', 'info');
+          return;
+        }
+        
+        state.playerData.finished = true;
+        updatePlayerScoreInFirebase();
+        
+        // Check if all players finished
+        try {
+          const playersSnapshot = await firebase.getDocs(
+            firebase.collection(firebase.db, 'rooms', state.currentRoomId, 'players')
+          );
+          
+          const allFinished = playersSnapshot.docs.every(doc => {
+            const player = doc.data();
+            return player.left || player.finished;
+          });
+          
+          if (allFinished) {
+            await endGame();
+          } else {
+            showNotification('Você finalizou! Aguardando outros jogadores...', 'success');
+          }
+        } catch (error) {
+          console.error('[GAME] Error checking finished players:', error);
+        }
+      }
+      
+      async function endGame() {
+        if (!state.gameActive) return;
+        
+        state.gameActive = false;
+        clearInterval(state.timer);
+        
+        // Update room status
+        if (state.currentRoomId) {
+          await firebase.updateDoc(firebase.doc(firebase.db, 'rooms', state.currentRoomId), {
+            status: 'finished',
+            endTime: firebase.firestore.serverTimestamp()
+          });
+        }
+        
+        // Determine winner
+        try {
+          const playersSnapshot = await firebase.getDocs(
+            firebase.collection(firebase.db, 'rooms', state.currentRoomId, 'players')
+          );
+          
+          const players = [];
+          playersSnapshot.forEach(doc => {
+            const player = doc.data();
+            if (!player.left) players.push(player);
+          });
+          
+          players.sort((a, b) => b.score - a.score);
+          const winner = players[0];
+          
+          // Save win to global ranking if current user won
+          if (winner?.name === state.currentUser?.name) {
+            await saveWinToGlobalRanking(state.currentUser.name, state.playerData.score);
+          }
+          
+          // Show final screen
+          showFinalScreen(players, winner);
+          
+        } catch (error) {
+          console.error('[GAME] Error ending game:', error);
+          showFinalScreen([], null);
+        }
+      }
+      
+      async function saveWinToGlobalRanking(playerName, score) {
+        try {
+          const playerRef = firebase.doc(firebase.db, 'tcc_players', playerName);
+          const playerDoc = await firebase.getDoc(playerRef);
+          
+          if (playerDoc.exists()) {
+            const data = playerDoc.data();
+            await firebase.updateDoc(playerRef, {
+              wins: (data.wins || 0) + 1,
+              bestScore: Math.max(data.bestScore || 0, score),
+              matchesPlayed: (data.matchesPlayed || 0) + 1,
+              lastUpdated: firebase.firestore.serverTimestamp()
+            });
+          } else {
+            await firebase.setDoc(playerRef, {
+              name: playerName,
+              wins: 1,
+              bestScore: score,
+              matchesPlayed: 1,
+              lastUpdated: firebase.firestore.serverTimestamp()
+            });
+          }
+          
+          console.log('[RANKING] Win saved for', playerName);
+        } catch (error) {
+          console.error('[RANKING] Error saving win:', error);
+        }
+      }
+      
+      function showFinalScreen(players, winner) {
+        // Update final screen
+        document.getElementById('final-score').textContent = state.playerData.score;
+        document.getElementById('final-correct').textContent = state.playerData.correctAnswers;
+        document.getElementById('final-total').textContent = state.playerData.totalAnswers;
+        
+        // Determine position
+        const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
+        const position = sortedPlayers.findIndex(p => p.name === state.currentUser?.name) + 1;
+        document.getElementById('final-position').textContent = position === 1 ? '🥇 1º' : `${position}º`;
+        
+        // Show winner badge if user won
+        const winnerBadge = document.getElementById('winner-badge');
+        if (winner?.name === state.currentUser?.name) {
+          winnerBadge.classList.remove('hidden');
+          createConfetti();
+        } else {
+          winnerBadge.classList.add('hidden');
+        }
+        
+        // Update final ranking
+        const rankingContainer = document.getElementById('final-ranking');
+        rankingContainer.innerHTML = '';
+        
+        sortedPlayers.forEach((player, index) => {
+          const item = document.createElement('div');
+          item.className = `final-ranking-item ${player.name === winner?.name ? 'winner' : ''}`;
+          
+          let positionIcon = index + 1;
+          if (index === 0) positionIcon = '🥇';
+          else if (index === 1) positionIcon = '🥈';
+          else if (index === 2) positionIcon = '🥉';
+          
+          // Get title based on wins
+          const title = getPlayerTitle(player.wins || 0);
+          
+          item.innerHTML = `
+            <span class="ranking-position ${index < 3 ? `ranking-${['gold','silver','bronze'][index]}` : ''}">
+              ${positionIcon}
+            </span>
+            <div class="ranking-info">
+              <div class="ranking-name">
+                ${player.name}
+                ${player.name === state.currentUser?.name ? '<span class="room-player-you">VOCÊ</span>' : ''}
+              </div>
+              <div class="ranking-wins">
+                ${player.wins || 0} vitórias
+                <span class="ranking-title">${title}</span>
+              </div>
+            </div>
+            <span class="ranking-score">${player.score}</span>
+          `;
+          
+          rankingContainer.appendChild(item);
+        });
+        
+        showScreen('final-screen');
+      }
+      
+      function getPlayerTitle(wins) {
+        if (wins >= 50) return 'Deus do TCC';
+        if (wins >= 20) return 'Mestre';
+        if (wins >= 5) return 'Aprendiz';
+        return 'Iniciante';
+      }
+      
+      async function loadGlobalRanking() {
+        const container = document.getElementById('global-ranking');
+        container.innerHTML = '<div class="loading">Carregando ranking...</div>';
+        
+        try {
+          const playersRef = firebase.collection(firebase.db, 'tcc_players');
+          const q = firebase.query(playersRef, 
+            firebase.orderBy('wins', 'desc'),
+            firebase.limit(3)
+          );
+          
+          const snapshot = await firebase.getDocs(q);
+          
+          if (snapshot.empty) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Nenhum jogador ainda</p>';
+            return;
+          }
+          
+          container.innerHTML = '';
+          
+          snapshot.forEach((doc, index) => {
+            const player = doc.data();
+            const title = getPlayerTitle(player.wins || 0);
+            
+            const item = document.createElement('div');
+            item.className = 'ranking-item';
+            item.style.animationDelay = `${index * 0.1}s`;
+            
+            let positionClass = '';
+            let positionIcon = index + 1;
+            if (index === 0) {
+              positionClass = 'ranking-gold';
+              positionIcon = '🥇';
+            } else if (index === 1) {
+              positionClass = 'ranking-silver';
+              positionIcon = '🥈';
+            } else if (index === 2) {
+              positionClass = 'ranking-bronze';
+              positionIcon = '🥉';
+            }
+            
+            item.innerHTML = `
+              <span class="ranking-position ${positionClass}">${positionIcon}</span>
+              <div class="ranking-info">
+                <div class="ranking-name">${player.name}</div>
+                <div class="ranking-wins">${player.wins || 0} vitórias <span class="ranking-title">${title}</span></div>
+              </div>
+              <span class="ranking-score">${player.bestScore || 0}</span>
+            `;
+            
+            container.appendChild(item);
+          });
+          
+        } catch (error) {
+          console.error('[RANKING] Error loading global ranking:', error);
+          container.innerHTML = '<p style="text-align: center; color: var(--neon-red);">Erro ao carregar ranking</p>';
+        }
+      }
+      
+      // ===== EVENT LISTENERS =====
+      function setupEventListeners() {
+        // Login
+        document.getElementById('login-btn').addEventListener('click', () => {
+          const username = document.getElementById('username-input').value.trim();
+          if (!username) {
+            showNotification('Nome de usuário é obrigatório', 'error');
+            return;
+          }
+          if (username.length > 20) {
+            showNotification('Nome muito longo (máx. 20 caracteres)', 'error');
+            return;
+          }
+          
+          saveUser(username);
+          document.getElementById('user-name-display').textContent = username;
+          showScreen('home-screen');
+          loadGlobalRanking();
+        });
+        
+        // Allow Enter key on login input
+        document.getElementById('username-input').addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            document.getElementById('login-btn').click();
+          }
+        });
+        
+        // Home screen buttons
+        document.getElementById('create-room-btn').addEventListener('click', createRoom);
+        
+        document.getElementById('join-room-btn').addEventListener('click', async () => {
+          const roomCode = prompt('Digite o código da sala (6 caracteres):');
+          if (roomCode && roomCode.length === 6) {
+            await joinRoom(roomCode);
+          } else if (roomCode) {
+            showNotification('Código deve ter 6 caracteres', 'error');
+          }
+        });
+        
+        document.getElementById('logout-btn').addEventListener('click', logout);
+        
+        // Lobby buttons
+        document.getElementById('start-game-btn').addEventListener('click', startGame);
+        document.getElementById('leave-lobby-btn').addEventListener('click', async () => {
+          if (state.currentRoomId && state.currentUser) {
+            try {
+              await firebase.updateDoc(
+                firebase.doc(firebase.db, 'rooms', state.currentRoomId, 'players', state.currentUser.name),
+                { left: true }
+              );
+            } catch (e) {
+              console.error('[ROOM] Error leaving room:', e);
+            }
+          }
+          
+          // Cleanup listeners
+          if (state.unsubscribeRoom) state.unsubscribeRoom();
+          if (state.unsubscribePlayers) state.unsubscribePlayers();
+          
+          state.currentRoom = null;
+          state.currentRoomId = null;
+          state.isHost = false;
+          showScreen('home-screen');
+        });
+        
+        // Game screen: Category buttons
+        document.querySelectorAll('.category-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            if (state.currentRoom?.playerOrder[state.currentRoom.currentTurnIndex] !== state.currentUser?.name) {
+              showNotification('Aguarde sua vez', 'info');
+              return;
+            }
+            // Load question of selected category
+            const category = btn.dataset.category;
+            const question = getRandomQuestion(category, state.gameData.questionsUsed);
+            const questionIndex = questionBank.indexOf(question);
+            state.currentQuestion = { ...question, index: questionIndex };
+            state.gameData.questionsUsed.push(questionIndex);
+            
+            // Update UI
+            document.getElementById('question-category').textContent = 
+              `${getCategoryEmoji(category)} ${getCategoryName(category)}`;
+            document.getElementById('question-category').className = `question-category ${category}`;
+            document.getElementById('question-number').textContent = `Questão #${state.playerData.totalAnswers + 1}`;
+            document.getElementById('question-text').textContent = question.pergunta;
+            document.getElementById('option-a').textContent = question.opcaoA;
+            document.getElementById('option-b').textContent = question.opcaoB;
+            
+            // Reset feedback and buttons
+            document.getElementById('feedback-message').className = 'feedback-message';
+            document.getElementById('feedback-message').style.display = 'none';
+            document.getElementById('next-round-btn').classList.add('hidden');
+            document.querySelectorAll('.option-btn').forEach(b => {
+              b.classList.remove('correct', 'incorrect');
+              b.disabled = false;
+            });
+          });
+        });
+        
+        // Game screen: Special houses
+        document.getElementById('use-insight').addEventListener('click', () => useSpecialHouse('insight'));
+        document.getElementById('use-impulse').addEventListener('click', () => useSpecialHouse('impulse'));
+        document.getElementById('use-reevaluation').addEventListener('click', () => useSpecialHouse('reevaluation'));
+        
+        // Game screen: Option buttons
+        document.querySelectorAll('.option-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            handleAnswer(btn.dataset.option);
+          });
+        });
+        
+        // Game screen: Next round button
+        document.getElementById('next-round-btn').addEventListener('click', nextRound);
+        
+        // Game screen: Tab navigation
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            // Update active tab
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Show active tab content
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+          });
+        });
+        
+        // Footer buttons
+        document.getElementById('finish-game-btn').addEventListener('click', finishGame);
+        document.getElementById('exit-game-btn').addEventListener('click', () => {
+          if (confirm('Tem certeza que deseja sair da partida?')) {
+            // Cleanup
+            if (state.unsubscribeRoom) state.unsubscribeRoom();
+            if (state.unsubscribePlayers) state.unsubscribePlayers();
+            if (state.timer) clearInterval(state.timer);
+            
+            state.gameActive = false;
+            state.currentRoom = null;
+            state.currentRoomId = null;
+            showScreen('home-screen');
+          }
+        });
+        
+        // Final screen buttons
+        document.getElementById('new-game-btn').addEventListener('click', () => {
+          // Reset state and go to home to create/join new room
+          if (state.unsubscribeRoom) state.unsubscribeRoom();
+          if (state.unsubscribePlayers) state.unsubscribePlayers();
+          if (state.timer) clearInterval(state.timer);
+          
+          state.gameActive = false;
+          state.currentRoom = null;
+          state.currentRoomId = null;
+          showScreen('home-screen');
+        });
+        
+        document.getElementById('back-home-btn').addEventListener('click', () => {
+          if (state.unsubscribeRoom) state.unsubscribeRoom();
+          if (state.unsubscribePlayers) state.unsubscribePlayers();
+          if (state.timer) clearInterval(state.timer);
+          
+          state.gameActive = false;
+          state.currentRoom = null;
+          state.currentRoomId = null;
+          showScreen('home-screen');
+        });
+      }
+      
+      // ===== INICIALIZAÇÃO =====
+      function init() {
+        console.log('[APP] Initializing TCC Experience...');
+        
+        // Create particles
+        createParticles();
+        
+        // Setup event listeners
+        setupEventListeners();
+        
+        // Check for saved user
+        if (loadUser()) {
+          document.getElementById('user-name-display').textContent = state.currentUser.name;
+          showScreen('home-screen');
+          loadGlobalRanking();
+        } else {
+          showScreen('login-screen');
+        }
+        
+        console.log('[APP] Initialization complete');
+      }
+      
+      // Start the app when Firebase is ready
+      init();
+    }, 1000);
+  </script>
+</body>
+</html>
