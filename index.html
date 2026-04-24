@@ -2554,7 +2554,7 @@
       function setupLobbyListeners(roomId) {
         // Listen to room changes
         if (state.unsubscribeRoom) state.unsubscribeRoom();
-        state.unsubscribeRoom = firebase.onSnapshot(firebase.doc(...), (doc) => {
+        state.unsubscribeRoom = firebase.onSnapshot(firebase.doc(firebase.db, 'rooms', roomId), (doc) => {
     if (doc.exists()) {          // <- Abre aqui
         state.currentRoom = doc.data();
         updateLobbyUI();
