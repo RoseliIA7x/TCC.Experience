@@ -2562,9 +2562,12 @@
             
             // If game started, switch to game screen
             if (state.currentRoom.status === 'playing' && !state.gameActive) {
-              startGame();
-            }
-          }
+    if (state.isHost) {
+        startGame(); // Host inicia e configura
+    } else {
+        joinGameAsPlayer(); // Jogadores apenas entram no jogo
+    }
+}
         });
         
         // Listen to players changes
@@ -2698,6 +2701,49 @@
           showNotification('Erro ao iniciar partida', 'error');
         }
       }
+      
+      // === FUNÇÃO PARA JOGADORES ENTRAREM NO JOGO ===
+function joinGameAsPlayer() {
+    console.log('[GAME] Joining game as player');
+    
+    state.gameActive = true;
+    state.timeRemaining = 600;
+    
+    // Resetar dados do jogador
+    state.playerData = {
+        score: 0,
+        combo: 0,
+        level: 1,
+        xp: 0,
+        correctAnswers: 0,
+        totalAnswers: 0,
+        finished: false
+    };
+    
+    state.gameData = {
+        startTime: Date.now(),
+        endTime: Date.now() + 600000,
+        currentTurnIndex: 0,
+        playerOrder: state.currentRoom.playerOrder || [],
+        questionsUsed: [],
+        specialHousesUsed: {
+            insight: false,
+            impulse: false,
+            reevaluation: false
+        }
+    };
+    
+    showScreen('game-screen');
+    setupGameListeners();
+    startTimer();
+    loadQuestion();
+    updateHUD();
+}
+
+// === FUNÇÃO SETUP LOBBY ===
+function setupLobbyListeners(roomId) {
+    // ...código existente...
+}
       
       function setupGameListeners() {
         // Listen to room for turn changes and game end
