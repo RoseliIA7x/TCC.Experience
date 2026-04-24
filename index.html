@@ -3524,8 +3524,8 @@ function setupLobbyListeners(roomId) {
         console.log('[APP] Initialization complete');
       }
       
-      // Start the app when Firebase is ready
-window.addEventListener('DOMContentLoaded', () => {
+      // ===== INICIALIZAÇÃO =====
+function init() {
     console.log('[APP] Initializing TCC Experience...');
     createParticles();
     setupEventListeners();
@@ -3537,4 +3537,9 @@ window.addEventListener('DOMContentLoaded', () => {
     } else {
         showScreen('login-screen');
     }
-});
+    
+    console.log('[APP] Initialization complete');
+}
+
+// Start the app
+init();
