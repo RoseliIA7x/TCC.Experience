@@ -2555,20 +2555,20 @@
       function setupLobbyListeners(roomId) {
         // Listen to room changes
         if (state.unsubscribeRoom) state.unsubscribeRoom();
-        state.unsubscribeRoom = firebase.onSnapshot(firebase.doc(firebase.db, 'rooms', roomId), (doc) => {
-          if (doc.exists()) {
-            state.currentRoom = doc.data();
-            updateLobbyUI();
-            
-            // If game started, switch to game screen
-            if (state.currentRoom.status === 'playing' && !state.gameActive) {
-    if (state.isHost) {
-        startGame(); // Host inicia e configura
-    } else {
-        joinGameAsPlayer(); // Jogadores apenas entram no jogo
-    }
-}
-        });
+        state.unsubscribeRoom = firebase.onSnapshot(firebase.doc(...), (doc) => {
+    if (doc.exists()) {          // <- Abre aqui
+        state.currentRoom = doc.data();
+        updateLobbyUI();
+        
+        if (status === 'playing' && !state.gameActive) {
+            if (state.isHost) {
+                startGame();
+            } else {
+                joinGameAsPlayer();
+            }
+        }
+    } 
+});
         
         // Listen to players changes
         if (state.unsubscribePlayers) state.unsubscribePlayers();
