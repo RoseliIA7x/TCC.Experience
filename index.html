@@ -11,31 +11,47 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- Firebase SDK v10.12.0 -->
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js';
-    import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot, query, where, orderBy, limit, serverTimestamp, addDoc, getDocs, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-    
-    // Firebase Configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyDsEiNt9cJQP18eT_xBTRuI6_QeMqzbALc",
-      authDomain: "tcc-experiencie.firebaseapp.com",
-      projectId: "tcc-experiencie",
-      storageBucket: "tcc-experiencie.firebasestorage.app",
-      messagingSenderId: "368040879283",
-      appId: "1:368040879283:web:cc8079fc5d4c8fcdf1fcc6",
-      measurementId: "G-QY4YB4591T"
-    };
-    
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const db = getFirestore(app);
-    
-    // Expose Firebase to global scope for module access
-    window.firebase = { app, analytics, db, getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot, query, where, orderBy, limit, serverTimestamp, addDoc, getDocs, deleteDoc, logEvent };
-  </script>
+ <!-- Firebase SDK v10.12.0 -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getAnalytics } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js';
+  import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot, query, where, orderBy, limit, serverTimestamp, addDoc, getDocs, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+  
+  const firebaseConfig = {
+    apiKey: "AIzaSyDsEiNt9cJQP18eT_xBTRuI6_QeMqzbALc",
+    authDomain: "tcc-experiencie.firebaseapp.com",
+    projectId: "tcc-experiencie",
+    storageBucket: "tcc-experiencie.firebasestorage.app",
+    messagingSenderId: "368040879283",
+    appId: "1:368040879283:web:cc8079fc5d4c8fcdf1fcc6",
+    measurementId: "G-QY4YB4591T"
+  };
+  
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getFirestore(app);
+  
+  // Expor globalmente
+  window.firebase = {
+    app,
+    analytics,
+    db,
+    serverTimestamp,
+    collection,
+    doc,
+    setDoc,
+    getDoc,
+    updateDoc,
+    onSnapshot,
+    query,
+    where,
+    orderBy,
+    limit,
+    addDoc,
+    getDocs,
+    deleteDoc
+  };
+</script>
   
   <style>
     /* ===== VARIÁVEIS CSS ===== */
@@ -2427,7 +2443,7 @@
         const roomData = {
           code: roomCode,
           status: 'waiting',
-          createdAt: firebase.firestore.serverTimestamp(),
+          createdAt: firebase.serverTimestamp(),
           startTime: null,
           endTime: null,
           hostId: state.currentUser.name,
@@ -2445,7 +2461,7 @@
             score: 0,
             finished: false,
             left: false,
-            joinedAt: firebase.firestore.serverTimestamp(),
+            joinedAt: firebase.serverTimestamp(),
             isHost: true,
             order: 0
           });
@@ -2516,7 +2532,7 @@
             score: 0,
             finished: false,
             left: false,
-            joinedAt: firebase.firestore.serverTimestamp(),
+            joinedAt: firebase.serverTimestamp(),
             isHost: false,
             order: playersSnapshot.size
           });
@@ -2638,7 +2654,7 @@
           // Update room with game start data
           await firebase.updateDoc(firebase.doc(firebase.db, 'rooms', state.currentRoomId), {
             status: 'playing',
-            startTime: firebase.firestore.serverTimestamp(),
+            startTime: firebase.serverTimestamp(),
             playerOrder: shuffledOrder,
             currentTurnIndex: 0
           });
@@ -3086,7 +3102,7 @@
         if (state.currentRoomId) {
           await firebase.updateDoc(firebase.doc(firebase.db, 'rooms', state.currentRoomId), {
             status: 'finished',
-            endTime: firebase.firestore.serverTimestamp()
+            endTime: firebase.serverTimestamp()
           });
         }
         
@@ -3130,7 +3146,7 @@
               wins: (data.wins || 0) + 1,
               bestScore: Math.max(data.bestScore || 0, score),
               matchesPlayed: (data.matchesPlayed || 0) + 1,
-              lastUpdated: firebase.firestore.serverTimestamp()
+              lastUpdated: firebase.serverTimestamp()
             });
           } else {
             await firebase.setDoc(playerRef, {
@@ -3138,7 +3154,7 @@
               wins: 1,
               bestScore: score,
               matchesPlayed: 1,
-              lastUpdated: firebase.firestore.serverTimestamp()
+              lastUpdated: firebase.serverTimestamp()
             });
           }
           
