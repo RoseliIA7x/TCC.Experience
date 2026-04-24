@@ -3503,28 +3503,6 @@ function setupLobbyListeners(roomId) {
       }
       
       // ===== INICIALIZAÇÃO =====
-      function init() {
-        console.log('[APP] Initializing TCC Experience...');
-        
-        // Create particles
-        createParticles();
-        
-        // Setup event listeners
-        setupEventListeners();
-        
-        // Check for saved user
-        if (loadUser()) {
-          document.getElementById('user-name-display').textContent = state.currentUser.name;
-          showScreen('home-screen');
-          loadGlobalRanking();
-        } else {
-          showScreen('login-screen');
-        }
-        
-        console.log('[APP] Initialization complete');
-      }
-      
-      // ===== INICIALIZAÇÃO =====
 function init() {
     console.log('[APP] Initializing TCC Experience...');
     createParticles();
